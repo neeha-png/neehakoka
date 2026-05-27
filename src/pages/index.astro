@@ -1,0 +1,32 @@
+---
+// index.astro - Your Homepage
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Home | My Personal Portfolio">
+	<div class="flex flex-col items-center md:flex-row md:justify-between gap-12 py-12" style="display: flex; justify-content: space-between; align-items: center; gap: 48px; padding: 48px 0;">
+		
+		<div style="flex: 1; display: flex; flex-direction: column; gap: 24px;">
+			<h1 style="font-size: 42px; font-weight: 800; line-height: 1.2;">
+				Hi, I'm an Entry-Level <span style="color: #3B82F6;">Software Engineer</span>
+			</h1>
+			<p style="font-size: 18px; max-w: 500px; line-height: 1.6; opacity: 0.8;">
+				I build robust full-stack applications and study secure systems. Welcome to my digital presence where I document my code journey, design strategies, and engineering lessons.
+			</p>
+			<div>
+				<a href="/projects" style="display: inline-block; background-color: #3B82F6; color: white; font-weight: 500; padding: 12px 24px; id: viewWorkBtn; border-radius: 8px; text-decoration: none; transition: 0.2s;">
+					View My Work
+				</a>
+			</div>
+		</div>
+
+		<div style="flex: 1; display: flex; justify-content: center; align-items: center;">
+			<div style="width: 280px; height: 280px; border-radius: 50%; border: 4px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px;">
+				<span style="color: #94a3b8; font-size: 14px;">
+					[Profile Graphic Placeholder]
+				</span>
+			</div>
+		</div>
+
+	</div>
+</Layout>
