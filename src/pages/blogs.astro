@@ -1,0 +1,48 @@
+---
+// blogs.astro - Lists your Markdown blog entries
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+try {
+	posts = await getCollection('blog');
+} catch (e) {
+	console.log("Syncing collection data...");
+}
+---
+
+<Layout title="My Blog Posts | Portfolio">
+	<div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding: 24px 0;">
+		
+		<section style="border-bottom: 1px solid #cbd5e1; padding-bottom: 16px;">
+			<h1 style="font-size: 36px; font-weight: 800;">The Engineering Blog</h1>
+			<p style="font-size: 18px; opacity: 0.8; margin-top: 4px;">
+				Documenting my daily learning process, tech insights, and building steps.
+			</p>
+		</section>
+
+		<div style="display: flex; flex-direction: column; gap: 24px;">
+			{posts.length === 0 ? (
+				<p style="opacity: 0.6; font-style: italic;">Syncing blog collection details...</p>
+			) : (
+				posts.map(post => (
+					<article style="border: 1px solid rgba(148, 163, 184, 0.2); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.03);">
+						<span style="font-size: 13px; opacity: 0.6;">
+							{post.data.pubDate ? new Date(post.data.pubDate).toLocaleDateString() : ""}
+						</span>
+						<h2 style="font-size: 22px; font-weight: 700; margin: 8px 0;">
+							{post.data.title}
+						</h2>
+						<p style="opacity: 0.8; line-height: 1.5; margin-bottom: 16px;">
+							{post.data.description}
+						</p>
+						<a href={`/blog/${post.id}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
+							Read Article →
+						</a>
+					</article>
+				))
+			)}
+		</div>
+
+	</div>
+</Layout>
