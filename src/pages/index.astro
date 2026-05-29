@@ -1,35 +1,132 @@
 ---
-// index.astro - Your Homepage
+// index.astro - Consolidated Smooth Scrolling Single-Page Portfolio
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Home | My Personal Portfolio">
-	<div class="flex flex-col items-center md:flex-row md:justify-between gap-12 py-12" style="display: flex; justify-content: space-between; align-items: center; gap: 48px; padding: 48px 0;">
+<Layout title="Neeha Koka | Portfolio">
+	<div style="max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 80px; padding: 40px 24px;">
 		
-		<div style="flex: 1; display: flex; flex-direction: column; gap: 24px;">
-			<h1 style="font-size: 42px; font-weight: 800; line-height: 1.2;">
+		<!-- 1. HOME / HERO SECTION -->
+		<section id="home" style="min-height: 70vh; display: flex; flex-direction: column; justify-content: center; gap: 24px;">
+			<h1 style="font-size: 48px; font-weight: 800; line-height: 1.2; margin: 0;">
 				Hi, I'm <span style="color: #3B82F6;">Neeha Koka</span>
 			</h1>
-			<h2 style="font-size: 24px; font-weight: 600; opacity: 0.9;">
+			<h2 style="font-size: 24px; font-weight: 600; opacity: 0.9; margin: 0;">
 				Computer Science & Cybersecurity Student
 			</h2>
-			<p style="font-size: 18px; max-w: 500px; line-height: 1.6; opacity: 0.8;">
-				Based in Hyderabad, I focus on network security principles, full-stack web development, and building secure digital solutions.
+			<p style="font-size: 18px; max-width: 600px; line-height: 1.6; opacity: 0.8; margin: 0;">
+				Based in Hyderabad, I focus on network security principles, full-stack web development, and building secure digital solutions. Welcome to my professional engineering space.
 			</p>
-			<div>
-				<a href="/projects" style="display: inline-block; background-color: #3B82F6; color: white; font-weight: 500; padding: 12px 24px; border-radius: 8px; text-decoration: none; transition: 0.2s;">
-					View My Work
+			<div style="margin-top: 8px;">
+				<a href="#works" style="display: inline-block; background-color: #3B82F6; color: white; font-weight: 500; padding: 12px 24px; border-radius: 8px; text-decoration: none; transition: 0.2s;">
+					View My Work ↓
 				</a>
 			</div>
-		</div>
+		</section>
 
-		<div style="flex: 1; display: flex; justify-content: center; align-items: center;">
-			<div style="width: 280px; height: 280px; border-radius: 50%; border: 4px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px;">
-				<span style="color: #94a3b8; font-size: 14px;">
-					[Profile Graphic Placeholder]
-				</span>
+		<!-- 2. ABOUT ME SECTION -->
+		<section id="about" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
+			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">About Me</h2>
+			<p style="font-size: 17px; line-height: 1.6; opacity: 0.8; margin: 0;">
+				I am a motivated Computer Science student specializing in Cybersecurity based in Hyderabad, India[cite: 1]. I have hands-on experience in network traffic analysis and vulnerability assessment[cite: 1], and I am deeply passionate about securing digital solutions and protective tech initiatives[cite: 1].
+			</p>
+			
+			<div style="display: flex; gap: 32px; flex-wrap: wrap; margin-top: 12px;">
+				<div style="flex: 1; min-width: 250px;">
+					<h3 style="font-size: 20px; font-weight: 700; color: #3B82F6; margin-bottom: 12px;">Education</h3>
+					<div style="background-color: rgba(148, 163, 184, 0.03); padding: 16px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.1);">
+						<h4 style="font-size: 16px; font-weight: 700; margin: 0;">Gurunanak Institute of Technology</h4>
+						<p style="font-size: 14px; opacity: 0.8; margin: 4px 0;">B.Tech in CSE (Cybersecurity) | 2022 - 2026</p>
+						<p style="font-size: 14px; color: #3B82F6; font-weight: 600; margin: 0;">CGPA: 8.41 (7th Sem)</p>
+					</div>
+				</div>
+				
+				<div style="flex: 1; min-width: 250px;">
+					<h3 style="font-size: 20px; font-weight: 700; color: #3B82F6; margin-bottom: 12px;">Certifications</h3>
+					<div style="background-color: rgba(59, 130, 246, 0.05); border-left: 4px solid #3B82F6; padding: 16px; border-radius: 4px;">
+						<h4 style="font-size: 16px; font-weight: 700; margin: 0;">CompTIA Security+</h4>
+						<p style="font-size: 14px; opacity: 0.8; margin-top: 4px;">In Progress — Focused on threats, network infrastructure, and risk management verification[cite: 1].</p>
+					</div>
+				</div>
 			</div>
-		</div>
+		</section>
+
+		<!-- 3. WORKS / PROJECTS SECTION -->
+		<section id="works" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
+			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">Technical Project Showcases</h2>
+			
+			<!-- Project 1 -->
+			<div style="background-color: rgba(148, 163, 184, 0.02); border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+				<span style="font-size: 12px; color: #3B82F6; font-weight: 700; text-transform: uppercase;">Flask & MySQL Stack</span>
+				<h3 style="font-size: 22px; font-weight: 700; margin: 0;">Lost and Found in Campus Portal</h3>
+				<p style="font-size: 15px; opacity: 0.8; line-height: 1.5; margin: 0;">
+					Developed an audited multi-role item tracking application featuring user authentication, strict verification state workflows, and status tracking for 100+ active campus members[cite: 1].
+				</p>
+			</div>
+
+			<!-- Project 2 -->
+			<div style="background-color: rgba(148, 163, 184, 0.02); border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+				<span style="font-size: 12px; color: #3B82F6; font-weight: 700; text-transform: uppercase;">Python & Django Framework</span>
+				<h3 style="font-size: 22px; font-weight: 700; margin: 0;">Academic Result Management System</h3>
+				<p style="font-size: 15px; opacity: 0.8; line-height: 1.5; margin: 0;">
+					Automated manual grading records into a secure full-stack layout featuring custom role boundaries for Administrators and Students to isolate grading views flawlessly[cite: 1].
+				</p>
+			</div>
+		</section>
+
+		<!-- 3.5 BLOGS SECTION -->
+		<section id="blogs" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
+			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">The Engineering Blog</h2>
+			<p style="font-size: 16px; opacity: 0.8; margin: 0;">Documenting my daily learning process, tech insights, and building steps.</p>
+			
+			<div style="display: flex; flex-direction: column; gap: 20px;">
+				<!-- Article 1 -->
+				<article style="border: 1px solid rgba(148, 163, 184, 0.15); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.01);">
+					<span style="font-size: 13px; opacity: 0.6;">May 29, 2026</span>
+					<h3 style="font-size: 20px; font-weight: 700; margin: 6px 0 10px 0;">Kicking Off My Software Engineering Portfolio</h3>
+					<p style="opacity: 0.8; line-height: 1.5; font-size: 15px; margin: 0;">
+						An inside look into designing and architecting this portfolio site using Astro, layout structures, and clean CSS styling parameters.
+					</p>
+				</article>
+
+				<!-- Article 2 -->
+				<article style="border: 1px solid rgba(148, 163, 184, 0.15); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.01);">
+					<span style="font-size: 13px; opacity: 0.6;">May 29, 2026</span>
+					<h3 style="font-size: 20px; font-weight: 700; margin: 6px 0 10px 0;">Exploring Secure Systems Design</h3>
+					<p style="opacity: 0.8; line-height: 1.5; font-size: 15px; margin: 0;">
+						Breaking down the core network infrastructure principles, threat mitigation, and data transparency barriers I am studying for my CompTIA Security+ validation[cite: 1].
+					</p>
+				</article>
+			</div>
+		</section>
+
+		<!-- 4. CONTACT SECTION -->
+		<section id="contact" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px; padding-bottom: 40px;">
+			<div>
+				<h2 style="font-size: 32px; font-weight: 800; margin: 0;">Get In Touch</h2>
+				<p style="opacity: 0.8; margin-top: 8px; margin-bottom: 0;">Have a question or want to connect? Drop a message below!</p>
+			</div>
+			
+			<form style="display: flex; flex-direction: column; gap: 16px; background-color: rgba(148, 163, 184, 0.03); padding: 24px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.1);">
+				<div style="display: flex; flex-direction: column; gap: 6px;">
+					<label for="name" style="font-size: 14px; font-weight: 600;">Full Name</label>
+					<input type="text" id="name" required placeholder="Your Name" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit;" />
+				</div>
+				<div style="display: flex; flex-direction: column; gap: 6px;">
+					<label for="email" style="font-size: 14px; font-weight: 600;">Email</label>
+					<input type="email" id="email" required placeholder="you@example.com" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit;" />
+				</div>
+				<div style="display: flex; flex-direction: column; gap: 6px;">
+					<label for="message" style="font-size: 14px; font-weight: 600;">Message</label>
+					<textarea id="message" rows="4" required placeholder="How can I help you?" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit; font-family: inherit; resize: vertical;"></textarea>
+				</div>
+				<div>
+					<button type="submit" style="background-color: #3B82F6; color: white; font-weight: 600; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer;">
+						Send Message
+					</button>
+				</div>
+			</form>
+		</section>
 
 	</div>
 </Layout>
