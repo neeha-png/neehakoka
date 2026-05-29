@@ -1,72 +1,49 @@
 ---
-// projects.astro - Your Case Studies Page
+// projects.astro - Portfolio Project Case Studies
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Projects & Case Studies | Portfolio">
+<Layout title="Projects | Neeha Koka">
 	<div style="max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; padding: 24px 0;">
 		
-		<section style="border-b: 1px solid #cbd5e1; padding-bottom: 16px;">
-			<h1 style="font-size: 36px; font-weight: 800;">Engineering Case Studies</h1>
+		<section style="border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 16px;">
+			<h1 style="font-size: 36px; font-weight: 800;">Technical Project Showcases</h1>
 			<p style="font-size: 18px; opacity: 0.8; margin-top: 8px;">
-				A deep dive into the technical challenges I have solved and the architectural decisions behind them.
+				Practical engineering applications demonstrating full-stack development, workflows automation, and secure user boundaries.
 			</p>
 		</section>
 
-		<article style="background-color: rgba(148, 163, 184, 0.05); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
-			<div style="display: flex; flex-direction: column; gap: 6px;">
-				<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Featured Case Study</span>
-				<h2 style="font-size: 26px; font-weight: 700;">1. Centralized Django Student Record & Role-Based Access System</h2>
+		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 16px;">
+			<div>
+				<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Flask & MySQL Stack</span>
+				<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Lost and Found in Campus Portal</h2>
 			</div>
 			
-			<hr style="border: none; border-top: 1px solid rgba(148, 163, 184, 0.2);" />
-
-			<div>
-				<h3 style="font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #ef4444; margin-bottom: 6px;">⚠️ The Problem</h3>
-				<p style="line-height: 1.6; opacity: 0.85;">
-					Educational data management often suffers from unauthorized updates and messy lookups. The challenge was to build a secure, centralized portal where guest users can easily look up student data by roll number, while administrative operations remain locked behind a strict, role-based login barrier.
-				</p>
-			</div>
-
-			<div>
-				<h3 style="font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; margin-bottom: 6px;">🛠️ The Approach</h3>
-				<p style="line-height: 1.6; opacity: 0.85;">
-					I designed a full-stack MVC solution using Python and the Django framework. I configured the Django Admin interface to serve as a secure dashboard for records personnel. For public lookups, I implemented an optimized backend database query filter module that catches invalid inputs before executing search queries.
-				</p>
-			</div>
-
-			<div>
-				<h3 style="font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #22c55e; margin-bottom: 6px;">🚀 The Outcome</h3>
-				<p style="line-height: 1.6; opacity: 0.85;">
-					The system cleanly isolated read-only public routes from privileged write actions. By utilizing standard server-side Django validation protocols, form injection vectors were closed off, resulting in an administrative environment where student metrics could be updated safely and searched instantly.
-				</p>
-			</div>
-
-			<div>
-				<h3 style="font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #eab308; margin-bottom: 6px;">🧠 What I'd Change Next Time</h3>
-				<p style="line-height: 1.6; opacity: 0.85;">
-					If building this system today, I would decouple the frontend view engine from Django templates entirely and build an independent REST API layer. I would also move away from simple session cookies toward JSON Web Tokens (JWT) to make the security model scale better across distinct serverless platforms.
-				</p>
-			</div>
-		</article>
-
-		<article style="border: 1px dashed rgba(148, 163, 184, 0.4); border-radius: 12px; padding: 24px; opacity: 0.7;">
-			<h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">2. Local Network Security Policy Audit</h2>
-			<p style="font-size: 14px; line-height: 1.5; opacity: 0.8;">
-				<strong>Problem:</strong> Identifying systemic visibility weaknesses in an unsecured test environment.<br/>
-				<strong>Approach:</strong> Ran Wireshark packet analyses and mapped port vulnerabilities.<br/>
-				<strong>Outcome:</strong> Implemented a closed router access control list layout.<br/>
-				<strong>What I'd change:</strong> Automate scanning loops using custom scripts rather than running audits completely by hand.
+			<p style="line-height: 1.6; opacity: 0.85;">
+				<strong>The Challenge:</strong> Campus recovery systems often lack structural integrity, causing transparency issues when tracking down lost properties for hundreds of internal users.
+			</p>
+			<p style="line-height: 1.6; opacity: 0.85;">
+				<strong>The Engineering Approach:</strong> Developed a responsive multi-role Flask web application. Implemented strict state transitions for items (Unverified → Verified → Claimed Archived), integrated secure file-system directory access for image uploads, and established proof-based checking paths to secure handovers.
+			</p>
+			<p style="line-height: 1.6; opacity: 0.85;">
+				<strong>The Outcome:</strong> Successfully built an audited data cycle serving over 100+ campus users with administrative visibility dashboards and automated email updates.
 			</p>
 		</article>
 
-		<article style="border: 1px dashed rgba(148, 163, 184, 0.4); border-radius: 12px; padding: 24px; opacity: 0.7;">
-			<h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">3. Secure Authentication Flow Wireframe</h2>
-			<p style="font-size: 14px; line-height: 1.5; opacity: 0.8;">
-				<strong>Problem:</strong> Users getting confused by multi-step login setups, leading to bad account habits.<br/>
-				<strong>Approach:</strong> Modeled visual layout user paths that gently prompt verification controls without breaking context.<br/>
-				<strong>Outcome:</strong> Achieved zero multi-page navigation drops in dummy layout checks.<br/>
-				<strong>What I'd change:</strong> Test the mock layout pathways on a wider set of mobile viewport ratios earlier in the sketching cycle.
+		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 16px;">
+			<div>
+				<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Python & Django Framework</span>
+				<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Academic Result Management System</h2>
+			</div>
+			
+			<p style="line-height: 1.6; opacity: 0.85;">
+				<strong>The Challenge:</strong> Manual institutional record-keeping introduces structural entry vulnerabilities and lack of controlled entry protocols for sensitive score summaries.
+			</p>
+			<p style="line-height: 1.6; opacity: 0.85;">
+				<strong>The Engineering Approach:</strong> Built a centralized full-stack MVC application leveraging Django's database toolkit. Engineered integrated operational panels for Profile, Course, and Result modules, and configured role-based authentication rules separating Administrators and Students.
+			</p>
+			<p style="line-height: 1.6; opacity: 0.85;">
+				<strong>The Outcome:</strong> Automated school data flows, boosting administrative speed while ensuring high record accuracy and isolated lookups.
 			</p>
 		</article>
 

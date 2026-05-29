@@ -37,21 +37,45 @@ const { title } = Astro.props;
 	</head>
 	<body class="bg-white text-slate-800 dark:bg-[#121826] dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col font-sans">
 		
-		<header class="border-b border-slate-200 dark:border-slate-800">
-			<div class="max-w-5xl mx-auto flex justify-between items-center p-4">
-				<a href="/" class="text-xl font-bold tracking-tight">PORTFOLIO</a>
+		<!-- HEADER / NAVIGATION BAR -->
+		<header class="border-b border-slate-200 dark:border-slate-800" style="border-bottom: 1px solid rgba(148, 163, 184, 0.2); width: 100%;">
+			<div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 16px 24px;">
 				
-				<nav class="flex items-center gap-6">
-					<a href="/" class="hover:text-blue-500 transition">Home</a>
-					<a href="/about" class="hover:text-blue-500 transition">About Me</a>
-					<a href="/projects" class="hover:text-blue-500 transition">Projects</a>
-					<a href="/blogs" class="hover:text-blue-500 transition">Blogs</a>
-					<a href="/contact" class="hover:text-blue-500 transition">Contact</a>
+				<!-- Logo Brand (Left side) -->
+				<a href="/" style="font-size: 18px; font-weight: 700; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 6px;">
+					<span>&lt;/&gt;</span> Portfolio
+				</a>
+				
+				<!-- Centered Nav Links (Middle) -->
+				<nav style="display: flex; gap: 28px; align-items: center; margin: 0 auto; padding-left: 60px;">
+					<a href="/" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Home</a>
+					<a href="/about" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">About</a>
+					<a href="/projects" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Works</a>
+					<a href="/blogs" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Blogs</a>
+					<a href="/contact" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Contact</a>
+				</nav>
+				
+				<!-- Right Anchor Action Items (Your Real Social Links + Theme Switcher) -->
+				<div style="display: flex; align-items: center; gap: 20px;">
+					<!-- GitHub Direct Profile -->
+					<a href="https://github.com/neeha-png" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style="text-decoration: none; color: inherit; opacity: 0.8; font-size: 18px; transition: 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+						🐙
+					</a>
+					<!-- LinkedIn Direct Profile -->
+					<a href="https://linkedin.com/in/NeehaKoka" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style="text-decoration: none; color: inherit; opacity: 0.8; font-size: 18px; transition: 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+						💼
+					</a>
+					<!-- Email Direct Action -->
+					<a href="mailto:kokaneeha24@gmail.com" aria-label="Email" style="text-decoration: none; color: inherit; opacity: 0.8; font-size: 18px; transition: 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+						✉️
+					</a>
 					
-					<button id="themeToggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-lg" aria-label="Toggle Theme">
+					<!-- Theme Toggle Button -->
+					<button id="themeToggle" style="background: transparent; border: none; cursor: pointer; padding: 4px; font-size: 16px; margin-left: 4px;" aria-label="Toggle Theme">
 						🌙
 					</button>
-				</nav>
+				</div>
+
 			</div>
 		</header>
 
