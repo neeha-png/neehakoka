@@ -3,7 +3,7 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
-const posts = await getCollection('blog');
+let posts = await getCollection('blog');
 try {
 	posts = await getCollection('blog');
 } catch (e) {
