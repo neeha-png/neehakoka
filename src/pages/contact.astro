@@ -1,41 +1,119 @@
 ---
-// contact.astro - Contact Form Page
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Contact Me | Portfolio">
-	<div style="max-width: 600px; margin: 0 auto; padding: 24px 0; display: flex; flex-direction: column; gap: 24px;">
-		
-		<div>
-			<h1 style="font-size: 36px; font-weight: 800; margin-bottom: 8px;">Get In Touch</h1>
-			<p style="opacity: 0.8; line-height: 1.5;">
-				Have a question, a project proposal, or just want to connect? Drop a message below and I will get back to you as soon as possible.
-			</p>
-		</div>
+<Layout title="Contact Me | Personal Portfolio">
+  <main class="max-w-xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Get in Touch</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-8">
+      Have a question or want to work together? Drop a message below, and I'll get back to you as soon as possible.
+    </p>
 
-		<form style="display: flex; flex-direction: column; gap: 20px; background-color: rgba(148, 163, 184, 0.05); padding: 32px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.2);">
-			
-			<div style="display: flex; flex-direction: column; gap: 6px;">
-				<label for="name" style="font-size: 14px; font-weight: 600;">Full Name</label>
-				<input type="text" id="name" name="name" required placeholder="Your Name" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.4); background: transparent; color: inherit;" />
-			</div>
+    <form id="contact-form" class="space-y-6">
+      <div>
+        <label for="name" class="block text-sm font-medium mb-2">Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          required 
+          minlength="2" 
+          class="w-full p-3 border rounded-lg bg-transparent dark:border-gray-700"
+          placeholder="Your name"
+        />
+      </div>
 
-			<div style="display: flex; flex-direction: column; gap: 6px;">
-				<label for="email" style="font-size: 14px; font-weight: 600;">Email Address</label>
-				<input type="email" id="email" name="email" required placeholder="you@example.com" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.4); background: transparent; color: inherit;" />
-			</div>
+      <div>
+        <label for="email" class="block text-sm font-medium mb-2">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          required 
+          class="w-full p-3 border rounded-lg bg-transparent dark:border-gray-700"
+          placeholder="you@example.com"
+        />
+      </div>
 
-			<div style="display: flex; flex-direction: column; gap: 6px;">
-				<label for="message" style="font-size: 14px; font-weight: 600;">Message</label>
-				<textarea id="message" name="message" rows="5" required placeholder="How can I help you?" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.4); background: transparent; color: inherit; font-family: inherit; resize: vertical;"></textarea>
-			</div>
+      <div>
+        <label for="message" class="block text-sm font-medium mb-2">Message</label>
+        <textarea 
+          id="message" 
+          name="message" 
+          required 
+          minlength="10" 
+          rows="5" 
+          class="w-full p-3 border rounded-lg bg-transparent dark:border-gray-700"
+          placeholder="Tell me about your project or inquiry (minimum 10 characters)..."
+        ></textarea>
+      </div>
 
-			<div>
-				<button type="submit" style="background-color: #3B82F6; color: white; font-weight: 600; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s;">
-					Send Message
-				</button>
-			</div>
-
-		</form>
-	</div>
+      <button 
+        type="submit" 
+        id="submit-btn"
+        class="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+      >
+        Send Message
+      </button>
+      
+      <p id="form-status" class="mt-4 p-3 rounded-lg text-center font-medium hidden"></p>
+    </form>
+  </main>
 </Layout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const statusMessage = document.getElementById('form-status');
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+  if (form && statusMessage && submitBtn) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Update UI state to loading
+      submitBtn.disabled = true;
+      statusMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-400', 'bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-400');
+      statusMessage.textContent = 'Sending your message...';
+      statusMessage.classList.add('block', 'bg-gray-100', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
+
+      // Collate form fields
+      const formData = new FormData(form);
+      const payload = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        message: formData.get('message'),
+      };
+
+      try {
+        // Post data directly to your newly built Cloudflare API route
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        statusMessage.classList.remove('bg-gray-100', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
+
+        if (response.ok) {
+          // Success Feedback
+          statusMessage.textContent = result.message || 'Success! Your message was sent.';
+          statusMessage.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-400');
+          form.reset();
+        } else {
+          // Validation/Server Failure Feedback
+          statusMessage.textContent = result.error || 'Something went wrong. Please check your details.';
+          statusMessage.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-400');
+        }
+      } catch (err) {
+        // Network Disconnect Failure Feedback
+        statusMessage.classList.remove('bg-gray-100', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
+        statusMessage.textContent = 'Network error. Could not reach the email server.';
+        statusMessage.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-400');
+      } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
+      }
+    });
+  }
+</script>
