@@ -28,5 +28,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: 'personal-portfolio'
-          directory: './.astro'
+          command: npx wrangler pages deploy .astro --project-name=personal-portfolio
