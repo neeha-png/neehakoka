@@ -6,7 +6,7 @@
   "name": "personal-portfolio",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "assets": {
-    "directory": "./.astro",
+    "directory": "./dist",
     "binding": "ASSETS"
   },
   "observability": {
