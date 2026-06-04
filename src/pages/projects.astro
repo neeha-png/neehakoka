@@ -67,18 +67,34 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</article>
 
-		<script is:inline>
-			// Simple click-to-toggle details for project cards
-			for (const btn of document.querySelectorAll('.interactive-card')) {
-				btn.addEventListener('click', () => {
-					const targetId = btn.getAttribute('data-more-target');
-					const panel = document.getElementById(targetId);
-					if (!panel) return;
-					const isHidden = panel.hasAttribute('hidden');
-					if (isHidden) panel.removeAttribute('hidden');
-					else panel.setAttribute('hidden', '');
-				});
-			}
-		</script>
+	<script is:inline>
+    function setupAccordions() {
+        for (const btn of document.querySelectorAll('.interactive-card')) {
+            // Remove any old listeners so they don't stack up up abnormally
+            btn.replaceWith(btn.cloneNode(true));
+        }
+
+        // Re-bind the click tracking behavior
+        for (const btn of document.querySelectorAll('.interactive-card')) {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-more-target');
+                const panel = document.getElementById(targetId);
+                if (!panel) return;
+                
+                if (panel.hasAttribute('hidden')) {
+                    panel.removeAttribute('hidden');
+                } else {
+                    panel.setAttribute('hidden', '');
+                }
+            });
+        }
+    }
+
+    // Run immediately when script loads
+    setupAccordions();
+    
+    // Run again if you are using Astro View Transitions
+    document.addEventListener('astro:page-load', setupAccordions);
+</script>
 	</div>
 </Layout>

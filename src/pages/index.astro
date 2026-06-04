@@ -40,12 +40,47 @@ import Layout from '../layouts/Layout.astro';
 						<p style="font-size: 14px; color: #3B82F6; font-weight: 600; margin: 0;">CGPA: 8.41 (7th Sem)</p>
 					</div>
 				</div>
-				
+
 				<div style="flex: 1; min-width: 250px;">
-					<h3 style="font-size: 20px; font-weight: 700; color: #3B82F6; margin-bottom: 12px;">Certifications</h3>
-					<div style="background-color: rgba(59, 130, 246, 0.05); border-left: 4px solid #3B82F6; padding: 16px; border-radius: 4px;">
-						<h4 style="font-size: 16px; font-weight: 700; margin: 0;">CompTIA Security+</h4>
-						<p style="font-size: 14px; opacity: 0.8; margin-top: 4px;">In Progress — Focused on threats, network infrastructure, and risk management verification[cite: 1].</p>
+					<h3 style="font-size: 20px; font-weight: 700; color: #3B82F6; margin-bottom: 12px;">Language Stack (Preview)</h3>
+					<p style="font-size: 14px; opacity: 0.75; margin-top: -6px;">Just a visual snapshot (not interactive).</p>
+
+					<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 10px;">
+						<!-- HTML -->
+						<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
+							<img src="/assets/astro.svg" alt="HTML" style="width:40px; height:40px; object-fit:contain; opacity:0.9;" />
+							<span style="font-size:14px; font-weight:700;">HTML</span>
+						</div>
+
+						<!-- CSS -->
+						<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
+							<img src="/assets/background.svg" alt="CSS" style="width:40px; height:40px; object-fit:contain; opacity:0.9;" />
+							<span style="font-size:14px; font-weight:700;">CSS</span>
+						</div>
+
+						<!-- JavaScript -->
+						<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
+							<img src="/assets/astro.svg" alt="JavaScript" style="width:40px; height:40px; object-fit:contain; opacity:0.9;" />
+							<span style="font-size:14px; font-weight:700;">JavaScript</span>
+						</div>
+
+						<!-- Python -->
+						<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
+							<img src="/assets/background.svg" alt="Python" style="width:40px; height:40px; object-fit:contain; opacity:0.9;" />
+							<span style="font-size:14px; font-weight:700;">Python</span>
+						</div>
+
+						<!-- Flask -->
+						<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
+							<img src="/assets/astro.svg" alt="Flask" style="width:40px; height:40px; object-fit:contain; opacity:0.9;" />
+							<span style="font-size:14px; font-weight:700;">Flask</span>
+						</div>
+
+						<!-- Django -->
+						<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
+							<img src="/assets/astro.svg" alt="Django" style="width:40px; height:40px; object-fit:contain; opacity:0.9;" />
+							<span style="font-size:14px; font-weight:700;">Django</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -55,22 +90,58 @@ import Layout from '../layouts/Layout.astro';
 		<section id="works" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
 			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">Technical Project Showcases</h2>
 			
-			<!-- Project 1 -->
+			<!-- Project 1 (interactive) -->
 			<div style="background-color: rgba(148, 163, 184, 0.02); border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
-				<span style="font-size: 12px; color: #3B82F6; font-weight: 700; text-transform: uppercase;">Flask & MySQL Stack</span>
-				<h3 style="font-size: 22px; font-weight: 700; margin: 0;">Lost and Found in Campus Portal</h3>
-				<p style="font-size: 15px; opacity: 0.8; line-height: 1.5; margin: 0;">
-					Developed an audited multi-role item tracking application featuring user authentication, strict verification state workflows, and status tracking for 100+ active campus members[cite: 1].
-				</p>
+				<button type="button" class="sp-project-more" data-more-target="index-project-flask" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+					<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+						<div>
+							<span style="font-size: 12px; color: #3B82F6; font-weight: 700; text-transform: uppercase;">Flask & MySQL Stack</span>
+							<h3 style="font-size: 22px; font-weight: 700; margin: 0;">Lost and Found in Campus Portal</h3>
+						</div>
+						<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for details ↓</span>
+					</div>
+					<p style="font-size: 15px; opacity: 0.8; line-height: 1.5; margin: 0;">
+						Developed an audited multi-role item tracking application featuring user authentication, strict verification state workflows, and status tracking for 100+ active campus members[cite: 1].
+					</p>
+				</button>
+				<div id="index-project-flask" class="sp-project-panel" hidden>
+					<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 10px;">
+						<strong>The Challenge:</strong> Campus recovery systems often lack structural integrity, causing transparency issues when tracking down lost properties for hundreds of internal users.
+					</p>
+					<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 8px;">
+						<strong>The Engineering Approach:</strong> Developed a responsive multi-role Flask web application. Implemented strict state transitions for items (Unverified → Verified → Claimed Archived), integrated secure file-system directory access for image uploads, and established proof-based checking paths to secure handovers.
+					</p>
+					<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 8px;">
+						<strong>The Outcome:</strong> Built an audited data cycle serving over 100+ campus users with administrative visibility dashboards and automated email updates.
+					</p>
+				</div>
 			</div>
 
-			<!-- Project 2 -->
+			<!-- Project 2 (interactive) -->
 			<div style="background-color: rgba(148, 163, 184, 0.02); border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
-				<span style="font-size: 12px; color: #3B82F6; font-weight: 700; text-transform: uppercase;">Python & Django Framework</span>
-				<h3 style="font-size: 22px; font-weight: 700; margin: 0;">Academic Result Management System</h3>
-				<p style="font-size: 15px; opacity: 0.8; line-height: 1.5; margin: 0;">
-					Automated manual grading records into a secure full-stack layout featuring custom role boundaries for Administrators and Students to isolate grading views flawlessly[cite: 1].
-				</p>
+				<button type="button" class="sp-project-more" data-more-target="index-project-django" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+					<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+						<div>
+							<span style="font-size: 12px; color: #3B82F6; font-weight: 700; text-transform: uppercase;">Python & Django Framework</span>
+							<h3 style="font-size: 22px; font-weight: 700; margin: 0;">Academic Result Management System</h3>
+						</div>
+						<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for details ↓</span>
+					</div>
+					<p style="font-size: 15px; opacity: 0.8; line-height: 1.5; margin: 0;">
+						Automated manual grading records into a secure full-stack layout featuring custom role boundaries for Administrators and Students to isolate grading views flawlessly[cite: 1].
+					</p>
+				</button>
+				<div id="index-project-django" class="sp-project-panel" hidden>
+					<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 10px;">
+						<strong>The Challenge:</strong> Manual institutional record-keeping introduces structural entry vulnerabilities and lack of controlled entry protocols for sensitive score summaries.
+					</p>
+					<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 8px;">
+						<strong>The Engineering Approach:</strong> Built a centralized full-stack MVC application leveraging Django's database toolkit. Engineered integrated operational panels for Profile, Course, and Result modules, and configured role-based authentication rules separating Administrators and Students.
+					</p>
+					<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 8px;">
+						<strong>The Outcome:</strong> Automated school data flows, boosting administrative speed while ensuring high record accuracy and isolated lookups.
+					</p>
+				</div>
 			</div>
 		</section>
 
@@ -80,23 +151,47 @@ import Layout from '../layouts/Layout.astro';
 			<p style="font-size: 16px; opacity: 0.8; margin: 0;">Documenting my daily learning process, tech insights, and building steps.</p>
 			
 			<div style="display: flex; flex-direction: column; gap: 20px;">
-				<!-- Article 1 -->
-				<article style="border: 1px solid rgba(148, 163, 184, 0.15); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.01);">
-					<span style="font-size: 13px; opacity: 0.6;">May 29, 2026</span>
-					<h3 style="font-size: 20px; font-weight: 700; margin: 6px 0 10px 0;">Kicking Off My Software Engineering Portfolio</h3>
-					<p style="opacity: 0.8; line-height: 1.5; font-size: 15px; margin: 0;">
-						An inside look into designing and architecting this portfolio site using Astro, layout structures, and clean CSS styling parameters.
-					</p>
-				</article>
+				<!-- Article 1 (interactive) -->
+				<div style="border: 1px solid rgba(148, 163, 184, 0.15); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.01); display: flex; flex-direction: column; gap: 12px;">
+					<button type="button" class="sp-blog-more" data-more-target="index-blog-portfolio" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+						<span style="font-size: 13px; opacity: 0.6;">May 29, 2026</span>
+						<h3 style="font-size: 20px; font-weight: 700; margin: 0;">Kicking Off My Software Engineering Portfolio</h3>
+						<p style="opacity: 0.8; line-height: 1.5; font-size: 15px; margin: 0;">
+							An inside look into designing and architecting this portfolio site using Astro, layout structures, and clean CSS styling parameters.
+						</p>
+						<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for extra info ↓</span>
+					</button>
+					<div id="index-blog-portfolio" class="sp-blog-panel" hidden>
+						<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 10px;">
+							<strong>What you'll learn:</strong> how I structured pages/layouts, handled styling consistently, and kept the UI responsive.
+						</p>
+						<a href="/blog/first-post" style="color: #3B82F6; font-weight: 600; text-decoration: none; margin-top: 8px; display: inline-block;">
+							Read Article →
+						</a>
+						<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
+					</div>
+				</div>
 
-				<!-- Article 2 -->
-				<article style="border: 1px solid rgba(148, 163, 184, 0.15); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.01);">
-					<span style="font-size: 13px; opacity: 0.6;">May 29, 2026</span>
-					<h3 style="font-size: 20px; font-weight: 700; margin: 6px 0 10px 0;">Exploring Secure Systems Design</h3>
-					<p style="opacity: 0.8; line-height: 1.5; font-size: 15px; margin: 0;">
-						Breaking down the core network infrastructure principles, threat mitigation, and data transparency barriers I am studying for my CompTIA Security+ validation[cite: 1].
-					</p>
-				</article>
+				<!-- Article 2 (interactive) -->
+				<div style="border: 1px solid rgba(148, 163, 184, 0.15); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.01); display: flex; flex-direction: column; gap: 12px;">
+					<button type="button" class="sp-blog-more" data-more-target="index-blog-secure" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+						<span style="font-size: 13px; opacity: 0.6;">May 29, 2026</span>
+						<h3 style="font-size: 20px; font-weight: 700; margin: 0;">Exploring Secure Systems Design</h3>
+						<p style="opacity: 0.8; line-height: 1.5; font-size: 15px; margin: 0;">
+							Breaking down the core network infrastructure principles, threat mitigation, and data transparency barriers I am studying for my CompTIA Security+ validation[cite: 1].
+						</p>
+						<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for extra info ↓</span>
+					</button>
+					<div id="index-blog-secure" class="sp-blog-panel" hidden>
+						<p style="font-size: 15px; opacity: 0.85; line-height: 1.6; margin-top: 10px;">
+							<strong>Focus areas:</strong> threat models, secure-by-design thinking, and practical ways to validate security controls.
+						</p>
+						<a href="/blog/learning-security" style="color: #3B82F6; font-weight: 600; text-decoration: none; margin-top: 8px; display: inline-block;">
+							Read Article →
+						</a>
+						<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
+					</div>
+				</div>
 			</div>
 		</section>
 
@@ -129,4 +224,33 @@ import Layout from '../layouts/Layout.astro';
 		</section>
 
 	</div>
+<script is:inline>
+	// Project expand/collapse
+	(() => {
+		const buttons = document.querySelectorAll('.sp-project-more');
+		buttons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const id = btn.getAttribute('data-more-target');
+				if (!id) return;
+				const panel = document.getElementById(id);
+				if (!panel) return;
+				panel.toggleAttribute('hidden');
+			});
+		});
+	})();
+
+	// Blog expand/collapse
+	(() => {
+		const buttons = document.querySelectorAll('.sp-blog-more');
+		buttons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const id = btn.getAttribute('data-more-target');
+				if (!id) return;
+				const panel = document.getElementById(id);
+				if (!panel) return;
+				panel.toggleAttribute('hidden');
+			});
+		});
+	})();
+</script>
 </Layout>

@@ -31,21 +31,20 @@ try {
 							<span style="font-size: 13px; opacity: 0.6;">
 								{post.data.pubDate ? new Date(post.data.pubDate).toLocaleDateString() : ""}
 							</span>
-							<h2 style="font-size: 22px; font-weight: 700; margin: 0;">
-								{post.data.title}
-							</h2>
-							<p style="opacity: 0.8; line-height: 1.5; margin: 0;">
-								{post.data.description}
-							</p>
-							<span style="font-size: 13px; opacity: 0.7;">Tap for extra info ↓</span>
+							<div style="display:flex; align-items:flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+								<h2 style="font-size: 22px; font-weight: 700; margin: 0;">{post.data.title}</h2>
+								<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for extra info ↓</span>
+							</div>
+							<p style="opacity: 0.8; line-height: 1.5; margin: 0;">{post.data.description}</p>
 						</button>
 						<div id={`blog-more-${post.id}`} class="blog-more-panel" hidden>
 							<p style="opacity: 0.85; line-height: 1.6; margin: 14px 0 16px 0;">
 								<strong>Extra:</strong> This article dives into key concepts, practical steps, and security-focused takeaways from my learning process.
 							</p>
-							<a href={`/blog/${post.id}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
-								Read Article →
-							</a>
+						<a href={`/blog/${post.id}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
+							Read Article →
+						</a>
+						<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
 						</div>
 					</article>
 				))
