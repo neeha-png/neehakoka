@@ -12,40 +12,73 @@ import Layout from '../layouts/Layout.astro';
 				Practical engineering applications demonstrating full-stack development, workflows automation, and secure user boundaries.
 			</p>
 		</section>
-
-		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 16px;">
-			<div>
-				<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Flask & MySQL Stack</span>
-				<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Lost and Found in Campus Portal</h2>
+		
+		<!-- Project 1 (interactive) -->
+		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+			<button type="button" class="interactive-card" data-more-target="project-flask" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+					<div>
+						<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Flask & MySQL Stack</span>
+						<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Lost and Found in Campus Portal</h2>
+					</div>
+					<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for details ↓</span>
+				</div>
+				<p style="line-height: 1.6; opacity: 0.85; margin: 0;">
+					<strong>Quick summary:</strong> Audited multi-role item tracking with strict verification workflows and automated updates.
+				</p>
+			</button>
+			<div id="project-flask" class="interactive-more" hidden>
+				<p style="line-height: 1.6; opacity: 0.85; margin-top: 10px;">
+					<strong>The Challenge:</strong> Campus recovery systems often lack structural integrity, causing transparency issues when tracking down lost properties for hundreds of internal users.
+				</p>
+				<p style="line-height: 1.6; opacity: 0.85;">
+					<strong>The Engineering Approach:</strong> Developed a responsive multi-role Flask web application. Implemented strict state transitions for items (Unverified → Verified → Claimed Archived), integrated secure file-system directory access for image uploads, and established proof-based checking paths to secure handovers.
+				</p>
+				<p style="line-height: 1.6; opacity: 0.85;">
+					<strong>The Outcome:</strong> Successfully built an audited data cycle serving over 100+ campus users with administrative visibility dashboards and automated email updates.
+				</p>
 			</div>
-			
-			<p style="line-height: 1.6; opacity: 0.85;">
-				<strong>The Challenge:</strong> Campus recovery systems often lack structural integrity, causing transparency issues when tracking down lost properties for hundreds of internal users.
-			</p>
-			<p style="line-height: 1.6; opacity: 0.85;">
-				<strong>The Engineering Approach:</strong> Developed a responsive multi-role Flask web application. Implemented strict state transitions for items (Unverified → Verified → Claimed Archived), integrated secure file-system directory access for image uploads, and established proof-based checking paths to secure handovers.
-			</p>
-			<p style="line-height: 1.6; opacity: 0.85;">
-				<strong>The Outcome:</strong> Successfully built an audited data cycle serving over 100+ campus users with administrative visibility dashboards and automated email updates.
-			</p>
 		</article>
 
-		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 16px;">
-			<div>
-				<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Python & Django Framework</span>
-				<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Academic Result Management System</h2>
+		<!-- Project 2 (interactive) -->
+		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+			<button type="button" class="interactive-card" data-more-target="project-django" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+					<div>
+						<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Python & Django Framework</span>
+						<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Academic Result Management System</h2>
+					</div>
+					<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for details ↓</span>
+				</div>
+				<p style="line-height: 1.6; opacity: 0.85; margin: 0;">
+					<strong>Quick summary:</strong> Secure MVC dashboards for Courses + Results with role-based access boundaries.
+				</p>
+			</button>
+			<div id="project-django" class="interactive-more" hidden>
+				<p style="line-height: 1.6; opacity: 0.85; margin-top: 10px;">
+					<strong>The Challenge:</strong> Manual institutional record-keeping introduces structural entry vulnerabilities and lack of controlled entry protocols for sensitive score summaries.
+				</p>
+				<p style="line-height: 1.6; opacity: 0.85;">
+					<strong>The Engineering Approach:</strong> Built a centralized full-stack MVC application leveraging Django's database toolkit. Engineered integrated operational panels for Profile, Course, and Result modules, and configured role-based authentication rules separating Administrators and Students.
+				</p>
+				<p style="line-height: 1.6; opacity: 0.85;">
+					<strong>The Outcome:</strong> Automated school data flows, boosting administrative speed while ensuring high record accuracy and isolated lookups.
+				</p>
 			</div>
-			
-			<p style="line-height: 1.6; opacity: 0.85;">
-				<strong>The Challenge:</strong> Manual institutional record-keeping introduces structural entry vulnerabilities and lack of controlled entry protocols for sensitive score summaries.
-			</p>
-			<p style="line-height: 1.6; opacity: 0.85;">
-				<strong>The Engineering Approach:</strong> Built a centralized full-stack MVC application leveraging Django's database toolkit. Engineered integrated operational panels for Profile, Course, and Result modules, and configured role-based authentication rules separating Administrators and Students.
-			</p>
-			<p style="line-height: 1.6; opacity: 0.85;">
-				<strong>The Outcome:</strong> Automated school data flows, boosting administrative speed while ensuring high record accuracy and isolated lookups.
-			</p>
 		</article>
 
+		<script is:inline>
+			// Simple click-to-toggle details for project cards
+			for (const btn of document.querySelectorAll('.interactive-card')) {
+				btn.addEventListener('click', () => {
+					const targetId = btn.getAttribute('data-more-target');
+					const panel = document.getElementById(targetId);
+					if (!panel) return;
+					const isHidden = panel.hasAttribute('hidden');
+					if (isHidden) panel.removeAttribute('hidden');
+					else panel.setAttribute('hidden', '');
+				});
+			}
+		</script>
 	</div>
 </Layout>
