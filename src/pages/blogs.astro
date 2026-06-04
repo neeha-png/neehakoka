@@ -27,22 +27,43 @@ try {
 			) : (
 				posts.map(post => (
 					<article style="border: 1px solid rgba(148, 163, 184, 0.2); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.03);">
-						<span style="font-size: 13px; opacity: 0.6;">
-							{post.data.pubDate ? new Date(post.data.pubDate).toLocaleDateString() : ""}
-						</span>
-						<h2 style="font-size: 22px; font-weight: 700; margin: 8px 0;">
-							{post.data.title}
-						</h2>
-						<p style="opacity: 0.8; line-height: 1.5; margin-bottom: 16px;">
-							{post.data.description}
-						</p>
+						<button type="button" class="blog-more" data-more-target={`blog-more-${post.id}`} style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 10px; width: 100%;">
+							<span style="font-size: 13px; opacity: 0.6;">
+								{post.data.pubDate ? new Date(post.data.pubDate).toLocaleDateString() : ""}
+							</span>
+							<div style="display:flex; align-items:flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+								<h2 style="font-size: 22px; font-weight: 700; margin: 0;">{post.data.title}</h2>
+								<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for extra info ↓</span>
+							</div>
+							<p style="opacity: 0.8; line-height: 1.5; margin: 0;">{post.data.description}</p>
+						</button>
+						<div id={`blog-more-${post.id}`} class="blog-more-panel" hidden>
+							<p style="opacity: 0.85; line-height: 1.6; margin: 14px 0 16px 0;">
+								<strong>Extra:</strong> This article dives into key concepts, practical steps, and security-focused takeaways from my learning process.
+							</p>
 						<a href={`/blog/${post.id}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
 							Read Article →
 						</a>
+						<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
+						</div>
 					</article>
 				))
 			)}
 		</div>
+
+		<script is:inline>
+			// Tap-to-expand extra info for blog cards
+			for (const btn of document.querySelectorAll('.blog-more')) {
+				btn.addEventListener('click', () => {
+					const targetId = btn.getAttribute('data-more-target');
+					const panel = document.getElementById(targetId);
+					if (!panel) return;
+					const isHidden = panel.hasAttribute('hidden');
+					if (isHidden) panel.removeAttribute('hidden');
+					else panel.setAttribute('hidden', '');
+				});
+			}
+		</script>
 
 	</div>
 </Layout>

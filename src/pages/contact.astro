@@ -3,60 +3,71 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Contact Me | Personal Portfolio">
-  <main class="max-w-xl mx-auto px-4 py-12">
-    <h1 class="text-3xl font-bold mb-2">Get in Touch</h1>
-    <p class="text-gray-600 dark:text-gray-400 mb-8">
-      Have a question or want to work together? Drop a message below, and I'll get back to you as soon as possible.
+  <main style="max-width: 850px; margin: 0 auto; padding: 80px 24px; color: #ffffff;">
+    <h1 style="font-size: 36px; font-weight: 800; margin-bottom: 8px;">Get In Touch</h1>
+    <p style="font-size: 16px; opacity: 0.8; margin-bottom: 32px;">
+      Have a question or want to connect? Drop a message below!
     </p>
 
-    <form id="contact-form" class="space-y-6">
-      <div>
-        <label for="name" class="block text-sm font-medium mb-2">Name</label>
+    <!-- The Styled Form Card Container -->
+    <form id="contact-form" style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- Full Name Group -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="name" style="font-size: 14px; font-weight: 600; opacity: 0.9;">Full Name</label>
         <input 
           type="text" 
           id="name" 
           name="name" 
           required 
           minlength="2" 
-          class="w-full p-3 border rounded-lg bg-transparent dark:border-gray-700"
-          placeholder="Your name"
+          placeholder="Your Name"
+          style="width: 100%; background-color: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; padding: 12px 16px; color: #ffffff; font-size: 14px; outline: none; box-sizing: border-box;"
         />
       </div>
 
-      <div>
-        <label for="email" class="block text-sm font-medium mb-2">Email Address</label>
+      <!-- Email Group -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="email" style="font-size: 14px; font-weight: 600; opacity: 0.9;">Email</label>
         <input 
           type="email" 
           id="email" 
           name="email" 
           required 
-          class="w-full p-3 border rounded-lg bg-transparent dark:border-gray-700"
           placeholder="you@example.com"
+          style="width: 100%; background-color: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; padding: 12px 16px; color: #ffffff; font-size: 14px; outline: none; box-sizing: border-box;"
         />
       </div>
 
-      <div>
-        <label for="message" class="block text-sm font-medium mb-2">Message</label>
+      <!-- Message Group -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="message" style="font-size: 14px; font-weight: 600; opacity: 0.9;">Message</label>
         <textarea 
           id="message" 
           name="message" 
           required 
           minlength="10" 
           rows="5" 
-          class="w-full p-3 border rounded-lg bg-transparent dark:border-gray-700"
-          placeholder="Tell me about your project or inquiry (minimum 10 characters)..."
+          placeholder="How can I help you?"
+          style="width: 100%; background-color: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; padding: 12px 16px; color: #ffffff; font-size: 14px; outline: none; resize: vertical; min-height: 120px; box-sizing: border-box;"
         ></textarea>
       </div>
 
-      <button 
-        type="submit" 
-        id="submit-btn"
-        class="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-      >
-        Send Message
-      </button>
+      <!-- Submit Button -->
+      <div>
+        <button 
+          type="submit" 
+          id="submit-btn"
+          style="background-color: #3B82F6; color: #ffffff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: auto;" 
+          onmouseover="this.style.backgroundColor='#2563EB'" 
+          onmouseout="this.style.backgroundColor='#3B82F6'"
+        >
+          Send Message
+        </button>
+      </div>
       
-      <p id="form-status" class="mt-4 p-3 rounded-lg text-center font-medium hidden"></p>
+      <!-- Status Box Messaging Layout -->
+      <p id="form-status" style="margin-top: 16px; padding: 12px; border-radius: 8px; text-align: center; font-weight: 500; display: none;"></p>
     </form>
   </main>
 </Layout>
@@ -72,11 +83,14 @@ import Layout from '../layouts/Layout.astro';
       
       // Update UI state to loading
       submitBtn.disabled = true;
-      statusMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-400', 'bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-400');
+      submitBtn.style.opacity = '0.5';
+      
+      // Reset styles dynamically using standard JS style object properties
+      statusMessage.style.display = 'block';
+      statusMessage.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
+      statusMessage.style.color = '#ffffff';
       statusMessage.textContent = 'Sending your message...';
-      statusMessage.classList.add('block', 'bg-gray-100', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
 
-      // Collate form fields
       const formData = new FormData(form);
       const payload = {
         name: formData.get('name'),
@@ -85,7 +99,6 @@ import Layout from '../layouts/Layout.astro';
       };
 
       try {
-        // Post data directly to your newly built Cloudflare API route
         const response = await fetch('/api/contact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -93,26 +106,28 @@ import Layout from '../layouts/Layout.astro';
         });
 
         const result = await response.json();
-        statusMessage.classList.remove('bg-gray-100', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
 
         if (response.ok) {
-          // Success Feedback
+          // Success Styles
+          statusMessage.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+          statusMessage.style.color = '#4ade80';
           statusMessage.textContent = result.message || 'Success! Your message was sent.';
-          statusMessage.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-400');
           form.reset();
         } else {
-          // Validation/Server Failure Feedback
+          // Server Validation Failure Styles
+          statusMessage.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+          statusMessage.style.color = '#f87171';
           statusMessage.textContent = result.error || 'Something went wrong. Please check your details.';
-          statusMessage.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-400');
         }
       } catch (err) {
-        // Network Disconnect Failure Feedback
-        statusMessage.classList.remove('bg-gray-100', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
+        // Network Failure Styles
+        statusMessage.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+        statusMessage.style.color = '#f87171';
         statusMessage.textContent = 'Network error. Could not reach the email server.';
-        statusMessage.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-400');
       } finally {
-        // Re-enable button
+        // Re-enable button layout
         submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
       }
     });
   }
