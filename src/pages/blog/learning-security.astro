@@ -1,0 +1,23 @@
+---
+import { getEntryBySlug } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const entry = await getEntryBySlug('blog', 'learning-security');
+if (!entry) {
+	throw new Error('Blog entry not found: learning-security');
+}
+
+const { Content } = await entry.render();
+---
+
+<Layout title={entry.data.title}>
+	<div style="max-width: 700px; margin: 0 auto; padding: 24px 0; line-height: 1.7;">
+		<a href="/blogs" style="color: #3B82F6; text-decoration: none; font-size: 14px;">← Back to Blog list</a>
+		<hr style="margin: 16px 0; border: none; border-top: 1px solid rgba(148, 163, 184, 0.2);" />
+		<main style="display: flex; flex-direction: column; gap: 16px;">
+			<h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">{entry.data.title}</h1>
+			<Content />
+		</main>
+	</div>
+</Layout>
+

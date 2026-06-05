@@ -1,16 +1,22 @@
 ---
 // [...slug].astro - Displays an individual article dynamically
 import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+
+interface Props {
+  entry: CollectionEntry<'blog'>;
+}
 
 export async function getStaticPaths() {
   const blogEntries = await getCollection('blog');
-  return blogEntries.map(entry => ({
-    params: { slug: entry.id }, props: { entry },
+  return blogEntries.map((entry: CollectionEntry<'blog'>) => ({
+    params: { slug: entry.id },
+    props: { entry },
   }));
 }
 
-const { entry } = Astro.props;
+const { entry } = Astro.props as Props;
 const { Content } = await render(entry);
 ---
 

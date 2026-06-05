@@ -1,13 +1,15 @@
+
 ---
 // blogs.astro - Lists your Markdown blog entries
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
-let posts = await getCollection('blog');
+let posts: any[] = [];
 try {
 	posts = await getCollection('blog');
 } catch (e) {
-	console.log("Syncing collection data...");
+	console.error('Failed to load blog collection:', e);
+	posts = [];
 }
 ---
 
@@ -15,6 +17,9 @@ try {
 	<div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding: 24px 0;">
 		
 		<section style="border-bottom: 1px solid #cbd5e1; padding-bottom: 16px;">
+			<div style="display:none" aria-hidden="true">Loading blog entries...</div>
+
+
 			<h1 style="font-size: 36px; font-weight: 800;">The Engineering Blog</h1>
 			<p style="font-size: 18px; opacity: 0.8; margin-top: 4px;">
 				Documenting my daily learning process, tech insights, and building steps.
@@ -41,10 +46,10 @@ try {
 							<p style="opacity: 0.85; line-height: 1.6; margin: 14px 0 16px 0;">
 								<strong>Extra:</strong> This article dives into key concepts, practical steps, and security-focused takeaways from my learning process.
 							</p>
-						<a href={`/blog/${post.id}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
-							Read Article →
-						</a>
-						<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
+							<a href={`/blog/${post.id}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
+								Read Article →
+							</a>
+							<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
 						</div>
 					</article>
 				))
