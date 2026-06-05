@@ -1,10 +1,11 @@
 ---
+---
 export const prerender = true;
 
 // blogs.astro - Lists your Markdown blog entries
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
----
+
 let posts: any[] = [];
 try {
 	posts = await getCollection('blog');
