@@ -1,8 +1,8 @@
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
-  // No loader import needed! Astro v6 automatically looks inside src/content/[collection_name]
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
   schema: z.object({
     title: z.string(),
     pubDate: z.coerce.date(),
@@ -11,4 +11,3 @@ const blog = defineCollection({
 });
 
 export const collections = { blog };
-

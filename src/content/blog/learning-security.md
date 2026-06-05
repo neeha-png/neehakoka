@@ -1,7 +1,7 @@
 ---
 title: "Exploring Secure Systems Design"
 pubDate: 2026-05-29
-description: "Why entry-level engineers should prioritize data validation and secure design principles."
+description: "Breaking down network infrastructure principles, threat mitigation, and data transparency as I begin studying for CompTIA Security+."
 ---
 
 # Exploring Secure Systems Design

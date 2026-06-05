@@ -1,7 +1,7 @@
 ---
 title: "Kicking Off My Software Engineering Portfolio"
-pubDate: 2026-05-28
-description: "A reflection on starting my modern personal website using Astro and Cloudflare."
+pubDate: 2026-05-29
+description: "An inside look into designing and architecting this portfolio site using Astro, layout structures, and clean CSS styling parameters."
 ---
 
 # Kicking Off My Software Engineering Portfolio
