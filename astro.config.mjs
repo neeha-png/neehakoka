@@ -4,6 +4,6 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   output: 'server', // or 'hybrid'
   adapter: cloudflare({
-    sessionKVBindingName: false // 👈 Add this line to stop generating the KV database
+    sessionKVBindingName: "" // 👈 Changed to an empty string to bypass the strict text requirement
   })
 });
