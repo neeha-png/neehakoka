@@ -1,8 +1,9 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
-// https://astro.build/config
 export default defineConfig({
-  output: 'server',
-  adapter: cloudflare()
+  output: 'server', // or 'hybrid'
+  adapter: cloudflare({
+    sessionKVBindingName: false // 👈 Add this line to stop generating the KV database
+  })
 });
