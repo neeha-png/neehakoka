@@ -11,7 +11,7 @@ interface Props {
 export async function getStaticPaths() {
   const blogEntries = await getCollection('blog');
   return blogEntries.map((entry: CollectionEntry<'blog'>) => ({
-    params: { slug: entry.id },
+    params: { slug: entry.id.replace(/\.md$/, '') },
     props: { entry },
   }));
 }
