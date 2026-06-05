@@ -9,6 +9,11 @@
     "directory": "./dist",
     "binding": "ASSETS"
   },
+  "kv_namespaces": [
+    {
+      "binding": "SESSION"
+    }
+  ],
   "observability": {
     "enabled": true
   }
