@@ -11,7 +11,8 @@
   },
   "kv_namespaces": [
     {
-      "binding": "SESSION"
+      "binding": "SESSION",
+      "id": "d8032b5c93a6440b9ba87dd957ee5f58" // 👈 Put your Cloudflare KV ID right here!
     }
   ],
   "observability": {
