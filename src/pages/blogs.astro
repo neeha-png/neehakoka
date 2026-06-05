@@ -1,8 +1,6 @@
 ---
----
 export const prerender = true;
 
-// blogs.astro - Lists your Markdown blog entries
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
@@ -13,14 +11,17 @@ try {
 	console.error('Failed to load blog collection:', e);
 	posts = [];
 }
+
+const postsWithSlug = posts.map(post => ({
+	...post,
+	slug: post.id.replace(/\.md$/, ''),
+}));
 ---
 
 <Layout title="My Blog Posts | Portfolio">
 	<div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding: 24px 0;">
 		
 		<section style="border-bottom: 1px solid #cbd5e1; padding-bottom: 16px;">
-			<div style="display:none" aria-hidden="true">Loading blog entries...</div>
-
 			<h1 style="font-size: 36px; font-weight: 800;">The Engineering Blog</h1>
 			<p style="font-size: 18px; opacity: 0.8; margin-top: 4px;">
 				Documenting my daily learning process, tech insights, and building steps.
@@ -28,12 +29,12 @@ try {
 		</section>
 
 		<div style="display: flex; flex-direction: column; gap: 24px;">
-			{posts.length === 0 ? (
+			{postsWithSlug.length === 0 ? (
 				<p style="opacity: 0.6; font-style: italic;">Syncing blog collection details...</p>
 			) : (
-				posts.map(post => (
+				postsWithSlug.map(post => (
 					<article style="border: 1px solid rgba(148, 163, 184, 0.2); padding: 24px; border-radius: 8px; background-color: rgba(148, 163, 184, 0.03);">
-						<button type="button" class="blog-more" data-more-target={`blog-more-${post.id.replace(/\.md$/, '')}`} style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 10px; width: 100%;">
+						<button type="button" class="blog-more" data-more-target={`blog-more-${post.slug}`} style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 10px; width: 100%;">
 							<span style="font-size: 13px; opacity: 0.6;">
 								{post.data.pubDate ? new Date(post.data.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ""}
 							</span>
@@ -43,14 +44,13 @@ try {
 							</div>
 							<p style="opacity: 0.8; line-height: 1.5; margin: 0;">{post.data.description}</p>
 						</button>
-						<div id={`blog-more-${post.id.replace(/\.md$/, '')}`} class="blog-more-panel" hidden>
+						<div id={`blog-more-${post.slug}`} class="blog-more-panel" hidden>
 							<p style="opacity: 0.85; line-height: 1.6; margin: 14px 0 16px 0;">
 								<strong>About this post:</strong> {post.data.description}
 							</p>
-							<a href={`/blog/${post.id.replace(/\.md$/, '')}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
+							<a href={`/blog/${post.slug}`} style="color: #3B82F6; font-weight: 500; text-decoration: none;">
 								Read Article →
 							</a>
-							<a href="/blogs" style="display:none" aria-hidden="true">Back</a>
 						</div>
 					</article>
 				))
@@ -58,7 +58,6 @@ try {
 		</div>
 
 		<script is:inline>
-			// Tap-to-expand extra info for blog cards
 			for (const btn of document.querySelectorAll('.blog-more')) {
 				btn.addEventListener('click', () => {
 					const targetId = btn.getAttribute('data-more-target');
