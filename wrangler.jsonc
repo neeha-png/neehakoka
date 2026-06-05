@@ -9,12 +9,6 @@
     "directory": "./dist",
     "binding": "ASSETS"
   },
-  "kv_namespaces": [
-    {
-      "binding": "SESSION",
-      "id": "5a87d1301c3644c5a37c0760e171a327" // 👈 Put your Cloudflare KV ID right here!
-    }
-  ],
   "observability": {
     "enabled": true
   }

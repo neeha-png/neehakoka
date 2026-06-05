@@ -24,9 +24,7 @@ jobs:
       - name: Build Astro Project
         run: npm run build
 
-      - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountID: 322235c7f097f0e145bb365973d32eb6
-          
+      - name: Direct Deploy via Wrangler CLI
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
