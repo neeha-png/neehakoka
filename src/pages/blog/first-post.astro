@@ -1,13 +1,13 @@
 ---
-import { getEntryBySlug } from 'astro:content';
+import { getEntry, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 
-const entry = await getEntryBySlug('blog', 'first-post');
+const entry = await getEntry('blog', 'first-post');
 if (!entry) {
 	throw new Error('Blog entry not found: first-post');
 }
 
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 ---
 
 <Layout title={entry.data.title}>
