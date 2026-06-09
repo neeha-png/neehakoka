@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async (context) => {
   try {
+    const { request } = context;
     const data = await request.json();
     const { name, email, message } = data;
 
@@ -28,9 +29,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Grab environment variables from Cloudflare context
-    const resendApiKey = (locals.runtime?.env as any)?.RESEND_API_KEY;
-    const targetEmail = (locals.runtime?.env as any)?.TO_EMAIL;
+    // Access env variables - works for both Workers and Pages
+    const env = (context.locals as any)?.runtime?.env ?? (context as any)?.locals?.env ?? {};
+    const resendApiKey = env.RESEND_API_KEY;
+    const targetEmail = env.TO_EMAIL;
+
+    console.log("ENV CHECK - resendApiKey exists:", !!resendApiKey);
+    console.log("ENV CHECK - targetEmail exists:", !!targetEmail);
 
     if (!resendApiKey || !targetEmail) {
       console.error("Missing environment variables for email forwarding.");
@@ -40,7 +45,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Send the email data to Resend's API
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -74,7 +78,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   } catch (error) {
     console.error("Server Error:", error);
     return new Response(
-      JSON.stringify({ error: 'An unexpected server error occurred.' }),
+      JSON.stringify({ error: `An unexpected server error occurred: ${error}` }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
