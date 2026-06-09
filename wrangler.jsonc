@@ -20,5 +20,8 @@
   ],
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    "TO_EMAIL": "neehasm0@gmail.com"
   }
 }
