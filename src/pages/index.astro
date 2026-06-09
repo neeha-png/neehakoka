@@ -225,32 +225,33 @@ import Layout from '../layouts/Layout.astro';
 		</section>
 
 		<!-- 4. CONTACT SECTION -->
-		<section id="contact" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px; padding-bottom: 40px;">
-			<div>
-				<h2 style="font-size: 32px; font-weight: 800; margin: 0;">Get In Touch</h2>
-				<p style="opacity: 0.8; margin-top: 8px; margin-bottom: 0;">Have a question or want to connect? Drop a message below!</p>
-			</div>
-			
-			<form style="display: flex; flex-direction: column; gap: 16px; background-color: rgba(148, 163, 184, 0.03); padding: 24px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.1);">
-				<div style="display: flex; flex-direction: column; gap: 6px;">
-					<label for="name" style="font-size: 14px; font-weight: 600;">Full Name</label>
-					<input type="text" id="name" required placeholder="Your Name" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit;" />
-				</div>
-				<div style="display: flex; flex-direction: column; gap: 6px;">
-					<label for="email" style="font-size: 14px; font-weight: 600;">Email</label>
-					<input type="email" id="email" required placeholder="you@example.com" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit;" />
-				</div>
-				<div style="display: flex; flex-direction: column; gap: 6px;">
-					<label for="message" style="font-size: 14px; font-weight: 600;">Message</label>
-					<textarea id="message" rows="4" required placeholder="How can I help you?" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit; font-family: inherit; resize: vertical;"></textarea>
-				</div>
-				<div>
-					<button type="submit" style="background-color: #3B82F6; color: white; font-weight: 600; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer;">
-						Send Message
-					</button>
-				</div>
-			</form>
-		</section>
+<section id="contact" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px; padding-bottom: 40px;">
+    <div>
+        <h2 style="font-size: 32px; font-weight: 800; margin: 0;">Get In Touch</h2>
+        <p style="opacity: 0.8; margin-top: 8px; margin-bottom: 0;">Have a question or want to connect? Drop a message below!</p>
+    </div>
+    
+    <form id="sp-contact-form" style="display: flex; flex-direction: column; gap: 16px; background-color: rgba(148, 163, 184, 0.03); padding: 24px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.1);">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label for="sp-name" style="font-size: 14px; font-weight: 600;">Full Name</label>
+            <input type="text" id="sp-name" name="name" required minlength="2" placeholder="Your Name" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit;" />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label for="sp-email" style="font-size: 14px; font-weight: 600;">Email</label>
+            <input type="email" id="sp-email" name="email" required placeholder="you@example.com" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit;" />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label for="sp-message" style="font-size: 14px; font-weight: 600;">Message</label>
+            <textarea id="sp-message" name="message" rows="4" required minlength="10" placeholder="How can I help you?" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: transparent; color: inherit; font-family: inherit; resize: vertical;"></textarea>
+        </div>
+        <div>
+            <button type="submit" id="sp-submit-btn" style="background-color: #3B82F6; color: white; font-weight: 600; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer;">
+                Send Message
+            </button>
+        </div>
+        <p id="sp-form-status" style="margin-top: 8px; padding: 12px; border-radius: 8px; text-align: center; font-weight: 500; display: none;"></p>
+    </form>
+</section>
 
 	</div>
 <script is:inline>
@@ -281,5 +282,60 @@ import Layout from '../layouts/Layout.astro';
 			});
 		});
 	})();
+	// Contact form submission
+(() => {
+    const form = document.getElementById('sp-contact-form');
+    const statusMessage = document.getElementById('sp-form-status');
+    const submitBtn = document.getElementById('sp-submit-btn');
+
+    if (form && statusMessage && submitBtn) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+
+            statusMessage.style.display = 'block';
+            statusMessage.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
+            statusMessage.style.color = '#ffffff';
+            statusMessage.textContent = 'Sending your message...';
+
+            const formData = new FormData(form);
+            const payload = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                message: formData.get('message'),
+            };
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusMessage.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+                    statusMessage.style.color = '#4ade80';
+                    statusMessage.textContent = result.message || 'Success! Your message was sent.';
+                    form.reset();
+                } else {
+                    statusMessage.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                    statusMessage.style.color = '#f87171';
+                    statusMessage.textContent = result.error || 'Something went wrong. Please check your details.';
+                }
+            } catch (err) {
+                statusMessage.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                statusMessage.style.color = '#f87171';
+                statusMessage.textContent = 'Network error. Could not reach the email server.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
+        });
+    }
+})();
 </script>
 </Layout>
