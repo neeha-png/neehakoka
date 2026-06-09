@@ -3,7 +3,7 @@ name: Deploy Astro Worker
 on:
   push:
     branches:
-      - main # Change this to 'master' if your default branch is named master
+      - main
 
 jobs:
   deploy:
@@ -25,6 +25,6 @@ jobs:
         run: npm run build
 
       - name: Direct Deploy via Wrangler CLI
-        run: npx wrangler deploy
+        run: npx wrangler deploy dist/server/entry.mjs --no-bundle
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
