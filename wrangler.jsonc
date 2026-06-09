@@ -1,7 +1,9 @@
 name = "neehakoka"
 main = "dist/_worker.js"
 compatibility_date = "2024-01-01"
-assets = { directory = "dist/client" }
+
+[assets]
+directory = "dist/client"
 
 [[kv_namespaces]]
 binding = "SESSION"
