@@ -1,12 +1,11 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async (context) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
-    const { request } = context;
     const data = await request.json();
     const { name, email, message } = data;
 
-    // Server-side Validation
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       return new Response(
         JSON.stringify({ error: 'Name must be at least 2 characters long.' }),
@@ -29,16 +28,11 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Access env variables - works for both Workers and Pages
-    const env = (context.locals as any)?.runtime?.env ?? (context as any)?.locals?.env ?? {};
-    const resendApiKey = env.RESEND_API_KEY;
-    const targetEmail = env.TO_EMAIL;
-
-    console.log("ENV CHECK - resendApiKey exists:", !!resendApiKey);
-    console.log("ENV CHECK - targetEmail exists:", !!targetEmail);
+    const resendApiKey = (env as any).RESEND_API_KEY;
+    const targetEmail = (env as any).TO_EMAIL;
 
     if (!resendApiKey || !targetEmail) {
-      console.error("Missing environment variables for email forwarding.");
+      console.error("Missing environment variables.");
       return new Response(
         JSON.stringify({ error: 'Server configuration error. Please try again later.' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
