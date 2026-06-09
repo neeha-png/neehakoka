@@ -25,7 +25,10 @@ jobs:
         run: npm run build
 
       - name: Remove auto-generated wrangler config
-        run: rm dist/server/wrangler.json
+        run: rm -f dist/server/wrangler.json
+
+      - name: Remove cached wrangler deploy config
+        run: rm -rf .wrangler
 
       - name: Direct Deploy via Wrangler CLI
         run: npx wrangler deploy dist/server/entry.mjs --no-bundle
