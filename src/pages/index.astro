@@ -338,4 +338,15 @@ import Layout from '../layouts/Layout.astro';
     }
 })();
 </script>
+
+<style is:global>
+	@media (max-width: 768px) {
+		#home {
+			min-height: 55vh !important;
+		}
+		#about {
+			padding-top: 28px !important;
+		}
+	}
+</style>
 </Layout>

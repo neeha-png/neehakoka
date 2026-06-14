@@ -1,0 +1,131 @@
+---
+// src/pages/admin.astro
+import { env } from "cloudflare:workers"; // <-- New Astro v6 way
+
+const db = env.portfolio_db; // <-- No longer need Astro.locals.runtime
+
+// 1. Authentication Check Layer
+let isAuthenticated = false;
+let submissions = [];
+
+const cookieHeader = Astro.request.headers.get("cookie") || "";
+const match = cookieHeader.match(/admin_session=([^;]+)/);
+const token = match ? match[1] : null;
+
+if (token) {
+  // Verify token exists and hasn't expired yet
+  const session = await db.prepare(
+    "SELECT * FROM admin_sessions WHERE token = ? AND expires_at > datetime('now')"
+  )
+  .bind(token)
+  .first();
+
+  if (session) {
+    isAuthenticated = true;
+    
+    // Fetch Form Data if Authenticated
+    submissions = await db.prepare(
+      "SELECT * FROM submissions WHERE status != 'deleted' ORDER BY created_at DESC"
+    )
+    .all();
+    submissions = submissions.results || [];
+  }
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Portfolio Admin Panel</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+    max-width { max-width: 800px; margin: 0 auto; }
+    .card { background: #1e293b; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #334155; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 4px; box-sizing: border-box; }
+    button { background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #1d4ed8; }
+    .meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; }
+    .badge { background: #334155; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="max-width">
+    {!isAuthenticated ? (
+      <div class="card" style="max-width: 400px; margin: 10% auto;">
+        <h2>Admin Authentication</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" required />
+          </div>
+          <button type="submit">Sign In</button>
+        </form>
+        <p id="loginError" style="color: #ef4444; margin-top: 1rem; display: none;"></p>
+      </div>
+    ) : (
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h1>Inbox Submissions ({submissions.length})</h1>
+          <button id="logoutBtn" style="background: #dc2626;">Log Out</button>
+        </div>
+
+        {submissions.length === 0 ? (
+          <p>No contact messages received yet.</p>
+        ) : (
+          submissions.map((msg) => (
+            <div class="card">
+              <div class="meta">
+                <strong>{msg.name}</strong> &lt;{msg.email}&gt; • {new Date(msg.created_at).toLocaleString()}
+                <span class="badge" style="float: right;">{msg.status}</span>
+              </div>
+              <p style="white-space: pre-wrap; margin: 1rem 0;">{msg.message}</p>
+            </div>
+          ))
+        )}
+      </div>
+    )}
+  </div>
+
+  <script>
+    // Handle Interactive Frontend Operations (Login / Logout)
+    const loginForm = document.getElementById("loginForm");
+    if (loginForm) {
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = (document.getElementById("username") as HTMLInputElement).value;
+        const password = (document.getElementById("password") as HTMLInputElement).value;
+        const errorEl = document.getElementById("loginError");
+
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          window.location.reload(); // Reload handles the cookie reading server side instantly
+        } else {
+          const data = await res.json();
+          errorEl.textContent = data.error || "Login failed";
+          errorEl.style.display = "block";
+        }
+      });
+    }
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+        // Expire cookie instantly by shifting date back
+        document.cookie = "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+        window.location.reload();
+      });
+    }
+  </script>
+</body>
+</html>

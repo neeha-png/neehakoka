@@ -22,12 +22,43 @@ const { Content } = await render(entry);
 ---
 
 <Layout title={entry.data.title}>
-  <div style="max-width: 700px; margin: 0 auto; padding: 24px 0; line-height: 1.7;">
-    <a href="/blogs" style="color: #3B82F6; text-decoration: none; font-size: 14px;">← Back to Blog list</a>
+  <div style="max-width: 700px; margin: 0 auto; padding: 24px 16px; line-height: 1.7;">
+    <a href="/" style="color: #3B82F6; text-decoration: none; font-size: 14px;">← Back to Blog list</a>
     <hr style="margin: 16px 0; border: none; border-top: 1px solid rgba(148, 163, 184, 0.2);" />
-    <main style="display: flex; flex-direction: column; gap: 16px;">
-      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">{entry.data.title}</h1>
-      <Content />
+    <main style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px; width: 100%;">{entry.data.title}</h1>
+      <div class="blog-content" style="width: 100%;">
+        <Content />
+      </div>
     </main>
   </div>
+
+  <style is:global>
+    @media (max-width: 768px) {
+      /* Center markdown so it doesn't feel stuck to phone corners */
+      .blog-content {
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 4px;
+      }
+
+      .blog-content :global(h1),
+      .blog-content :global(h2),
+      .blog-content :global(h3),
+      .blog-content :global(p),
+      .blog-content :global(ul),
+      .blog-content :global(ol) {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+      }
+
+      /* Keep lists visually centered too */
+      .blog-content :global(ul),
+      .blog-content :global(ol) {
+        padding-left: 20px;
+      }
+    }
+  </style>
 </Layout>
