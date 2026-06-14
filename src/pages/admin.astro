@@ -118,14 +118,14 @@ if (token) {
       });
     }
 
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", () => {
-        // Expire cookie instantly by shifting date back
-        document.cookie = "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-        window.location.reload();
-      });
-    }
+    // ✅ New — calls API to kill session in DB, then redirects
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          await fetch("/api/logout", { method: "POST" });
+          window.location.href = "/admin"; // Redirect back to login screen
+        });
+      }
   </script>
 </body>
 </html>

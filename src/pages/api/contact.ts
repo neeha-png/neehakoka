@@ -24,8 +24,20 @@ export const POST: APIRoute = async ({ request }) => {
     if (!message || typeof message !== 'string' || message.trim().length < 10) {
       return new Response(
         JSON.stringify({ error: 'Message must be at least 10 characters long.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    // ✅ INSERT INTO DATABASE — this was completely missing before
+    const db = (env as any).portfolio_db;
+    if (db) {
+      await db.prepare(
+        "INSERT INTO submissions (name, email, message, status, created_at) VALUES (?, ?, ?, 'new', datetime('now'))"
+      )
+      .bind(name.trim(), email.trim(), message.trim())
+      .run();
+    } else {
+      console.error("D1 binding 'portfolio_db' not found.");
     }
 
     const resendApiKey = (env as any).RESEND_API_KEY;
