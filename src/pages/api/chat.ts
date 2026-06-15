@@ -1,4 +1,6 @@
 import { getProfileContext } from '../../lib/profileContext';
+import { env } from 'cloudflare:workers';
+import { rateLimitByIp } from '../../lib/rateLimit';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -8,13 +10,22 @@ type RequestBody = {
 };
 
 export async function post({ request }: { request: Request }) {
-  const apiKey = (import.meta as any).env?.GEMINI_API_KEY;
+  const limiter = await rateLimitByIp(request, 'chat', 6);
+  if (!limiter.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
+
+  const apiKey = (env as any).GEMINI_API_KEY;
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
+
 
   const body = (await request.json()) as RequestBody;
   const userMessage = String(body?.message ?? '').trim();

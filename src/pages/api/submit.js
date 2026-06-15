@@ -1,8 +1,14 @@
 // src/pages/api/submit.js
 import { env } from "cloudflare:workers";
+import { rateLimitByIp } from "../../lib/rateLimit";
 
 export const POST = async ({ request }) => { // removed locals argument
   try {
+    const limiter = await rateLimitByIp(request, 'submit', 3);
+    if (!limiter.allowed) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+    }
+
     const data = await request.json();
     let { name, email, message } = data;
 
