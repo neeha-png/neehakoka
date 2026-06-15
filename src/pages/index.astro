@@ -1,8 +1,8 @@
 ---
 // index.astro - Consolidated Smooth Scrolling Single-Page Portfolio
 import Layout from '../layouts/Layout.astro';
+import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontmatter fence where it belongs
 ---
-
 <Layout title="Neeha Koka | Portfolio">
 	<div style="max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 80px; padding: 40px 24px;">
 		
@@ -254,6 +254,7 @@ import Layout from '../layouts/Layout.astro';
 </section>
 
 	</div>
+	<ChatWidget />
 <script is:inline>
 	// Project expand/collapse
 	(() => {

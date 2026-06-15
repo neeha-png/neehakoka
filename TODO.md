@@ -1,9 +1,10 @@
-# TODO - Fix blogs page
+# TODO
 
-- [ ] Update `src/pages/blogs.astro` to remove broken double `getCollection` fetch (single try/catch).
-- [ ] Make blog card links use the same slug used by the dynamic route (`/blog/${post.id}`).
-- [ ] Harden rendering: safely handle missing `title/description/pubDate`.
-- [ ] Simplify panel toggle JS.
-- [x] Run `npm run build` to verify the site compiles and blog pages route correctly. (blocked by PowerShell execution policy for npm/npx scripts)
+- [ ] Add Gemini-backed chat API route: `src/pages/api/chat.ts`
+- [x] Add Gemini profile context: `src/lib/profileContext.ts`
+- [x] Add floating chat widget UI component: `src/components/ChatWidget.astro`
+- [x] Mount chat widget on homepage: update `src/pages/index.astro`
+- [ ] Verify build/dev (`npm run dev`) and basic request flow
+- [x] Document required env var: `GEMINI_API_KEY`
 
 
