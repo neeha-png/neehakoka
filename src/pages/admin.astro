@@ -5,8 +5,16 @@ import { env } from "cloudflare:workers"; // <-- New Astro v6 way
 const db = env.portfolio_db; // <-- No longer need Astro.locals.runtime
 
 // 1. Authentication Check Layer
+interface Submission {
+  name: string;
+  email: string;
+  created_at: string;
+  status: string;
+  message: string;
+}
+
 let isAuthenticated = false;
-let submissions = [];
+let submissions: Submission[] = [];
 
 const cookieHeader = Astro.request.headers.get("cookie") || "";
 const match = cookieHeader.match(/admin_session=([^;]+)/);
@@ -24,11 +32,22 @@ if (token) {
     isAuthenticated = true;
     
     // Fetch Form Data if Authenticated
-    submissions = await db.prepare(
+    const result = await db.prepare(
       "SELECT * FROM submissions WHERE status != 'deleted' ORDER BY created_at DESC"
     )
     .all();
-    submissions = submissions.results || [];
+
+    const rows = Array.isArray(result.results)
+      ? result.results as Record<string, unknown>[]
+      : [];
+
+    submissions = rows.map((row) => ({
+      name: String(row.name ?? ""),
+      email: String(row.email ?? ""),
+      created_at: String(row.created_at ?? ""),
+      status: String(row.status ?? ""),
+      message: String(row.message ?? ""),
+    }));
   }
 }
 ---
@@ -111,9 +130,15 @@ if (token) {
         if (res.ok) {
           window.location.reload(); // Reload handles the cookie reading server side instantly
         } else {
-          const data = await res.json();
-          errorEl.textContent = data.error || "Login failed";
-          errorEl.style.display = "block";
+          const data = await res.json().catch(() => null);
+          const errorMessage = data && typeof data === "object" && "error" in data && typeof (data as any).error === "string"
+            ? (data as any).error
+            : "Login failed";
+
+          if (errorEl instanceof HTMLElement) {
+            errorEl.textContent = errorMessage;
+            errorEl.style.display = "block";
+          }
         }
       });
     }
