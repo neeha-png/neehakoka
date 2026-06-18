@@ -1,8 +1,17 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
+import { rateLimitByIp } from '../../lib/rateLimit';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const limiter = await rateLimitByIp(request, 'contact', 3);
+    if (!limiter.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
     const data = await request.json();
     const { name, email, message } = data;
 
