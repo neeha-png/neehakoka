@@ -1,6 +1,7 @@
 {
   "name": "neehakoka",
-  "compatibility_date": "2024-04-03",
+  "compatibility_date": "2025-01-01",
+  "main": "src/worker/index.js",
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
