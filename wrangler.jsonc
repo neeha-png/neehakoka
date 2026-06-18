@@ -1,6 +1,6 @@
 {
-  "name": "personal-portfolio",
-  "compatibility_date": "2025-01-01",  // ✅ Updated
+  "name": "neehakoka",
+  "compatibility_date": "2024-04-03",
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
