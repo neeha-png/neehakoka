@@ -6,7 +6,6 @@
     "directory": "dist/client",
     "binding": "ASSETS"
   },
-  // ✅ Removed unused SESSION KV namespace
     "kv_namespaces": [
     {
       "binding": "SESSION",
