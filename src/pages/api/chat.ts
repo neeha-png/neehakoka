@@ -18,7 +18,7 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
-  const apiKey = (env as any).GEMINI_API_KEY;
+  const apiKey = await env.GEMINI_API_KEY.get();
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' }),
