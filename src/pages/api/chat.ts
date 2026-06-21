@@ -9,7 +9,7 @@ type RequestBody = {
   history?: ChatMessage[];
 };
 
-export async function post({ request }: { request: Request }) {
+export async function POST({ request }: { request: Request }) {
   const limiter = await rateLimitByIp(request, 'chat', 6);
   if (!limiter.allowed) {
     return new Response(
