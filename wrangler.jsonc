@@ -1,7 +1,6 @@
 {
   "name": "neehakoka",
   "compatibility_date": "2025-01-01",
-  "main": "dist/server/entry.mjs",
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
