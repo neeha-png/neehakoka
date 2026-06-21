@@ -1,7 +1,7 @@
 {
   "name": "neehakoka",
   "compatibility_date": "2025-01-01",
-  "main": "src/worker/index.js",
+  "main": "dist/server/entry.mjs",
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
@@ -12,12 +12,6 @@
       "binding": "portfolio_db",
       "database_name": "portfolio-db",
       "database_id": "3b8812a3-362f-419e-8a5e-9b9381186904"
-    }
-  ],
-  "rules": [
-    {
-      "type": "ESModule",
-      "globs": ["**/*.js", "**/*.mjs"]
     }
   ],
   "observability": {
