@@ -12,10 +12,13 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const data = await request.json();
-    const { name, email, message } = data;
+    // ✅ Type the parsed JSON explicitly
+    const data = await request.json() as { name?: unknown; email?: unknown; message?: unknown };
+    const name = typeof data.name === 'string' ? data.name : '';
+    const email = typeof data.email === 'string' ? data.email : '';
+    const message = typeof data.message === 'string' ? data.message : '';
 
-    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+    if (!name || name.trim().length < 2) {
       return new Response(
         JSON.stringify({ error: 'Name must be at least 2 characters long.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -30,15 +33,20 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    if (!message || typeof message !== 'string' || message.trim().length < 10) {
+    if (!message || message.trim().length < 10) {
       return new Response(
         JSON.stringify({ error: 'Message must be at least 10 characters long.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const resendApiKey = (env as any).RESEND_API_KEY;
-    const targetEmail = (env as any).TO_EMAIL;
+    // ✅ Secrets Store binding: supports both .get() and plain string
+    const resendBinding = (env as any).RESEND_API_KEY;
+    const resendApiKey: string | null = typeof resendBinding?.get === 'function'
+      ? await resendBinding.get()
+      : (typeof resendBinding === 'string' ? resendBinding : null);
+
+    const targetEmail = (env as any).TO_EMAIL as string | undefined;
 
     if (!resendApiKey || !targetEmail) {
       console.error("Missing environment variables.");
@@ -48,6 +56,13 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
+    // ✅ Save to D1 FIRST — before returning, inside try block
+    const db = (env as any).portfolio_db;
+    await db.prepare(
+      'INSERT INTO submissions (name, email, message, created_at) VALUES (?, ?, ?, ?)'
+    ).bind(name.trim(), email.trim(), message.trim(), new Date().toISOString()).run();
+
+    // ✅ Send email AFTER saving
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -68,7 +83,7 @@ export const POST: APIRoute = async ({ request }) => {
       const errorData = await emailResponse.json();
       console.error("Resend API Error:", errorData);
       return new Response(
-        JSON.stringify({ error: 'Failed to send message via email provider.' }),
+        JSON.stringify({ error: 'Message saved but failed to send email notification.' }),
         { status: 502, headers: { 'Content-Type': 'application/json' } }
       );
     }
