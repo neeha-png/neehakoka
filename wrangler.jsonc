@@ -26,4 +26,36 @@
     "TO_EMAIL": "neehasm0@gmail.com"
     // ✅ RESEND_API_KEY goes via: npx wrangler secret put RESEND_API_KEY
   }
+}{
+  "name": "neehakoka",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "d8032b5c93a6440b9ba87dd957ee5f58"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "portfolio_db",
+      "database_name": "portfolio-db",
+      "database_id": "3b8812a3-362f-419e-8a5e-9b9381186904"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "TO_EMAIL": "neehasm0@gmail.com",
+    "ADMIN_USERNAME": "admin"
+  },
+  "secrets_store_secrets": [
+    { "binding": "ADMIN_PASSWORD", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "ADMIN_PASSWORD" },
+    { "binding": "GEMINI_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "GEMINI_API_KEY" },
+    { "binding": "RESEND_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "RESEND_API_KEY" }
+  ]
 }
