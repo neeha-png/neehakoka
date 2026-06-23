@@ -1,6 +1,6 @@
-import { getProfileContext } from '../../lib/profileContext';
 import { env } from 'cloudflare:workers';
 import { rateLimitByIp } from '../../lib/rateLimit';
+import { getProfileContext } from '../../lib/profileContext';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -18,14 +18,26 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
+<<<<<<< Updated upstream
   const apiKey = await env.GEMINI_API_KEY.get();
+=======
+<<<<<<< Updated upstream
+  const apiKey = (env as any).GEMINI_API_KEY;
+=======
+  // ✅ Secrets Store binding: access via .get() on the binding object
+  const geminiBinding = (env as any).GEMINI_API_KEY;
+  const apiKey: string | null = typeof geminiBinding?.get === 'function'
+    ? await geminiBinding.get()
+    : (typeof geminiBinding === 'string' ? geminiBinding : null);
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
-
 
   const body = (await request.json()) as RequestBody;
   const userMessage = String(body?.message ?? '').trim();
@@ -38,11 +50,8 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 
-  // Gemini REST: https://ai.google.dev/gemini-api/docs
-  // We use the “generateContent” endpoint.
   const profileContext = getProfileContext();
 
-  // Keep conversation small to reduce tokens.
   const trimmedHistory = history.slice(-10);
   const chatTranscript = [
     ...trimmedHistory,
@@ -83,14 +92,23 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
-  const data = await res.json();
+  // ✅ Properly typed Gemini response
+  const data = await res.json() as {
+    candidates?: Array<{
+      content?: {
+        parts?: Array<{ text?: string }>;
+      };
+    }>;
+  };
+
   const reply =
-    data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).filter(Boolean).join('') ||
-    'Sorry—could not generate a reply right now.';
+    data?.candidates?.[0]?.content?.parts
+      ?.map((p) => p?.text)
+      .filter(Boolean)
+      .join('') || 'Sorry—could not generate a reply right now.';
 
   return new Response(JSON.stringify({ reply }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
 }
-
