@@ -18,20 +18,22 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
-<<<<<<< Updated upstream
   const apiKey = await env.GEMINI_API_KEY.get();
-=======
-<<<<<<< Updated upstream
   const apiKey = (env as any).GEMINI_API_KEY;
-=======
-  // ✅ Secrets Store binding: access via .get() on the binding object
-  const geminiBinding = (env as any).GEMINI_API_KEY;
-  const apiKey: string | null = typeof geminiBinding?.get === 'function'
-    ? await geminiBinding.get()
-    : (typeof geminiBinding === 'string' ? geminiBinding : null);
 
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+  // ✅ Handles: plain secret, Secrets Store binding, and local .dev.vars
+  let apiKey: string | null = null;
+  try {
+    const geminiBinding = (env as any).GEMINI_API_KEY;
+    if (typeof geminiBinding === 'string' && geminiBinding.trim().length > 0) {
+      apiKey = geminiBinding.trim();
+    } else if (geminiBinding && typeof geminiBinding.get === 'function') {
+      apiKey = await geminiBinding.get();
+    }
+  } catch {
+    apiKey = null;
+  }
+
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' }),
@@ -65,7 +67,8 @@ export async function POST({ request }: { request: Request }) {
     "\nASSISTANT:",
   ].join("\n");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+  // ✅ Updated to gemini-2.0-flash
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   const res = await fetch(url, {
     method: 'POST',
