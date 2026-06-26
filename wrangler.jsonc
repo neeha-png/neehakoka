@@ -29,5 +29,10 @@
     { "binding": "ADMIN_PASSWORD", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "ADMIN_PASSWORD" },
     { "binding": "GEMINI_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "GEMINI_API_KEY" },
     { "binding": "RESEND_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "RESEND_API_KEY" }
-  ]
+  ],
+  "ai": {
+    "bindings": [
+      { "name": "AI" }
+    ]
+  }
 }
