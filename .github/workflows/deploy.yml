@@ -1,42 +1,29 @@
 name: Deploy Astro Worker
-
 on:
   push:
     branches:
       - main
-<<<<<<< Updated upstream
-
-=======
       - feat/ext-2-api-integration
->>>>>>> Stashed changes
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Build Astro Project
         run: npm run build
-
       - name: Remove auto-generated wrangler config
         run: rm -f dist/server/wrangler.json
-
       - name: Remove cached wrangler deploy config
         run: rm -rf .wrangler
-
       - name: Direct Deploy via Wrangler CLI
-        run: npx wrangler deploy dist/server/entry.mjs --no-bundle
+        run: npx wrangler deploy dist/server/entry.mjs --compatibility-date 2025-01-01
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          TO_EMAIL: ${{ secrets.TO_EMAIL }}
