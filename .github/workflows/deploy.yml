@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - main
+<<<<<<< Updated upstream
 
+=======
+      - feat/ext-2-api-integration
+>>>>>>> Stashed changes
 jobs:
   deploy:
     runs-on: ubuntu-latest
