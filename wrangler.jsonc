@@ -1,4 +1,3 @@
-//wrangler.jsonc
 {
   "name": "neehakoka",
   "compatibility_date": "2025-01-01",
@@ -6,7 +5,7 @@
     "directory": "dist/client",
     "binding": "ASSETS"
   },
-    "kv_namespaces": [
+  "kv_namespaces": [
     {
       "binding": "SESSION",
       "id": "d8032b5c93a6440b9ba87dd957ee5f58"
@@ -22,13 +21,13 @@
   "observability": {
     "enabled": true
   },
- "vars": {
-  "TO_EMAIL": "neehasm0@gmail.com",
-  "ADMIN_USERNAME": "admin"
+  "vars": {
+    "TO_EMAIL": "neehasm0@gmail.com",
+    "ADMIN_USERNAME": "admin"
   },
   "secrets_store_secrets": [
-  { "binding": "ADMIN_PASSWORD", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "ADMIN_PASSWORD" },
-  { "binding": "GEMINI_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "GEMINI_API_KEY" },
-  { "binding": "RESEND_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "RESEND_API_KEY" }
-]
+    { "binding": "ADMIN_PASSWORD", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "ADMIN_PASSWORD" },
+    { "binding": "GEMINI_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "GEMINI_API_KEY" },
+    { "binding": "RESEND_API_KEY", "store_id": "209a76076f6b4f8f859255a4a5b4fb7e", "secret_name": "RESEND_API_KEY" }
+  ]
 }

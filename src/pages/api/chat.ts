@@ -18,11 +18,18 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
-  // Secrets Store binding: access via .get() on the binding object, or plain string fallback
-  const geminiBinding = (env as any).GEMINI_API_KEY;
-  const apiKey: string | null = typeof geminiBinding?.get === 'function'
-    ? await geminiBinding.get()
-    : (typeof geminiBinding === 'string' ? geminiBinding : null);
+  // Handles: plain secret, Secrets Store binding, and local .dev.vars
+  let apiKey: string | null = null;
+  try {
+    const geminiBinding = (env as any).GEMINI_API_KEY;
+    if (typeof geminiBinding === 'string' && geminiBinding.trim().length > 0) {
+      apiKey = geminiBinding.trim();
+    } else if (geminiBinding && typeof geminiBinding.get === 'function') {
+      apiKey = await geminiBinding.get();
+    }
+  } catch {
+    apiKey = null;
+  }
 
   if (!apiKey) {
     return new Response(
@@ -57,6 +64,7 @@ export async function POST({ request }: { request: Request }) {
     "\nASSISTANT:",
   ].join("\n");
 
+  // Updated to gemini-2.0-flash
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   const res = await fetch(url, {
