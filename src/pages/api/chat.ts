@@ -18,20 +18,12 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
-<<<<<<< Updated upstream
-  const apiKey = await env.GEMINI_API_KEY.get();
-=======
-<<<<<<< Updated upstream
-  const apiKey = (env as any).GEMINI_API_KEY;
-=======
-  // ✅ Secrets Store binding: access via .get() on the binding object
+  // Secrets Store binding: access via .get() on the binding object, or plain string fallback
   const geminiBinding = (env as any).GEMINI_API_KEY;
   const apiKey: string | null = typeof geminiBinding?.get === 'function'
     ? await geminiBinding.get()
     : (typeof geminiBinding === 'string' ? geminiBinding : null);
 
->>>>>>> Stashed changes
->>>>>>> Stashed changes
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' }),
@@ -65,7 +57,7 @@ export async function POST({ request }: { request: Request }) {
     "\nASSISTANT:",
   ].join("\n");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   const res = await fetch(url, {
     method: 'POST',
@@ -92,7 +84,6 @@ export async function POST({ request }: { request: Request }) {
     );
   }
 
-  // ✅ Properly typed Gemini response
   const data = await res.json() as {
     candidates?: Array<{
       content?: {
@@ -105,7 +96,7 @@ export async function POST({ request }: { request: Request }) {
     data?.candidates?.[0]?.content?.parts
       ?.map((p) => p?.text)
       .filter(Boolean)
-      .join('') || 'Sorry—could not generate a reply right now.';
+      .join('') || 'Sorry, could not generate a reply right now.';
 
   return new Response(JSON.stringify({ reply }), {
     status: 200,
