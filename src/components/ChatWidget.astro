@@ -98,26 +98,34 @@
       messagesEl.appendChild(typing);
       messagesEl.scrollTop = messagesEl.scrollHeight;
 
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history })
-      }).catch(() => null);
-
-      typing.remove();
-
-      if (!res || !res.ok) {
-        setError('Chat failed. Ensure GEMINI_API_KEY is set.');
+      let res;
+      try {
+        res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, history })
+        });
+      } catch {
+        typing.remove();
+        setError('Network error. Please try again.');
         return;
       }
 
-      const data = await res.json().catch(() => ({}));
-      const reply = data?.reply || 'No reply received.';
+      typing.remove();
 
+      let data;
+      try { data = await res.json(); } catch { data = {}; }
+
+      if (!res.ok) {
+        const msg = data?.error || '';
+        setError(msg.includes('Rate limit') ? 'Too many messages. Please wait a moment.' : 'Chat failed. Please try again.');
+        return;
+      }
+
+      const reply = data?.reply || 'No reply received.';
       appendMessage('assistant', reply);
       history.push({ role: 'assistant', content: reply });
 
-      // Keep history small
       if (history.length > 16) history = history.slice(-16);
     }
 

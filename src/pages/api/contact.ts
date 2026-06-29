@@ -40,12 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // ✅ Secrets Store binding: supports both .get() and plain string
-    const resendBinding = (env as any).RESEND_API_KEY;
-    const resendApiKey: string | null = typeof resendBinding?.get === 'function'
-      ? await resendBinding.get()
-      : (typeof resendBinding === 'string' ? resendBinding : null);
-
+    const resendApiKey = (env as any).RESEND_API_KEY as string | undefined ?? null;
     const targetEmail = (env as any).TO_EMAIL as string | undefined;
 
     if (!resendApiKey || !targetEmail) {
@@ -56,11 +51,10 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // ✅ Save to D1 FIRST — before returning, inside try block
     const db = (env as any).portfolio_db;
     await db.prepare(
-      'INSERT INTO submissions (name, email, message, created_at) VALUES (?, ?, ?, ?)'
-    ).bind(name.trim(), email.trim(), message.trim(), new Date().toISOString()).run();
+      'INSERT INTO submissions (id, name, email, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(crypto.randomUUID(), name.trim(), email.trim(), message.trim(), 'pending', new Date().toISOString()).run();
 
     // ✅ Send email AFTER saving
     const emailResponse = await fetch('https://api.resend.com/emails', {

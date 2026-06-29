@@ -1,46 +1,23 @@
+import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { rateLimitByIp } from '../../lib/rateLimit';
 import { cvMarkdown } from '../../data/cv';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
+type RequestBody = { message: string; history?: ChatMessage[] };
 
-type RequestBody = {
-  message: string;
-  history?: ChatMessage[];
-};
+const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 
-const encoder = new TextEncoder();
+const systemPrompt = [
+  'Act as an "Ask my Résumé" chatbot.',
+  'Ground ALL answers strictly in the provided CV data below.',
+  'If asked about salary, decline gracefully: "I cannot discuss specific salary requirements here, please reach out directly via email".',
+  'If asked an out-of-scope question (e.g., "Write a Python script", "What is the capital of France?"), refuse politely.',
+  'Keep answers concise (2-3 sentences max).',
+  '\n---\nCV DATA:\n' + cvMarkdown,
+].join('\n');
 
-function toSSEStreamFromTextGenerator(textStream: ReadableStream) {
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const reader = textStream.getReader();
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (!value) continue;
-
-          // Workers AI returns bytes; normalize to string chunks.
-          const chunkText = typeof value === 'string' ? value : new TextDecoder().decode(value);
-          const safe = chunkText.replaceAll('\r', '');
-
-          // SSE format: send each chunk as a "data:" line.
-          controller.enqueue(encoder.encode(`data: ${safe}\n\n`));
-        }
-
-        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-        controller.close();
-      } catch (err) {
-        controller.enqueue(encoder.encode(`data: [ERROR]\n\n`));
-        controller.close();
-      } finally {
-        reader.releaseLock();
-      }
-    },
-  });
-}
-
-export async function POST({ request, env }: { request: Request; env: any }) {
+export const POST: APIRoute = async ({ request }) => {
   const limiter = await rateLimitByIp(request, 'chat', 6);
   if (!limiter.allowed) {
     return new Response(
@@ -60,51 +37,51 @@ export async function POST({ request, env }: { request: Request; env: any }) {
     });
   }
 
-  const trimmedHistory = history.slice(-6);
+  const geminiApiKey = (env as any).GEMINI_API_KEY as string | undefined;
+  if (!geminiApiKey) {
+    return new Response(JSON.stringify({ error: 'Missing GEMINI_API_KEY.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-  const systemRules = [
-    `Act as an "Ask my Résumé" chatbot.`,
-    `Ground ALL answers strictly in the provided CV data from src/data/cv.ts.`,
-    `If asked about salary, decline gracefully: "I cannot discuss specific salary requirements here, please reach out directly via email".`,
-    `If asked an out-of-scope question (e.g., "Write a Python script", "What is the capital of France?"), refuse politely.`,
-    `Keep answers concise (2-3 sentences max).`,
-  ].join('\n');
-
-  const messages = [
-    { role: 'system', content: systemRules + '\n\n---\nCV DATA:\n' + cvMarkdown },
-    ...trimmedHistory.map((m) => ({ role: m.role, content: m.content })),
-    { role: 'user', content: userMessage },
+  // Build Gemini contents array (role must be "user" or "model")
+  const contents = [
+    ...history.slice(-6).map((m: ChatMessage) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    })),
+    { role: 'user', parts: [{ text: userMessage }] },
   ];
 
-  const model = '@cf/meta/llama-3-8b-instruct';
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents,
+        generationConfig: { maxOutputTokens: 220, temperature: 0.4 },
+      }),
+    },
+  );
 
-  if (!env?.AI?.run) {
+  if (!geminiRes.ok) {
+    console.error('Gemini API error:', geminiRes.status, await geminiRes.text());
     return new Response(
-      JSON.stringify({ error: 'Missing Workers AI binding (env.AI).' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
+      JSON.stringify({ error: 'AI service error. Please try again.' }),
+      { status: 502, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
-  const aiResult = await env.AI.run(model, {
-    messages,
-    stream: true,
-    max_tokens: 220,
-    temperature: 0.4,
-  });
+  const data = await geminiRes.json() as any;
+  const reply =
+    (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim() ||
+    "Sorry, I didn't get a response.";
 
-  // aiResult is expected to include a readable stream (Workers AI streaming)
-  // Common shapes: { stream } or the stream itself.
-  const rawStream: ReadableStream =
-    aiResult?.stream instanceof ReadableStream ? aiResult.stream : aiResult;
-
-  const eventStream = toSSEStreamFromTextGenerator(rawStream);
-
-  return new Response(eventStream, {
+  return new Response(JSON.stringify({ reply }), {
     status: 200,
-    headers: {
-      'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-    },
+    headers: { 'Content-Type': 'application/json' },
   });
-}
+};

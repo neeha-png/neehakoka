@@ -5,12 +5,11 @@ export const POST = async ({ request }) => { // removed locals argument
   try {
     const { username, password } = await request.json();
 
-  // Verify against environment variables directly from the imported env
-const adminPassword = await env.ADMIN_PASSWORD.get();
+    const adminPassword = env.ADMIN_PASSWORD;
 
-if (username !== env.ADMIN_USERNAME || password !== adminPassword) {
-  return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401 });
-}
+    if (!adminPassword || username !== env.ADMIN_USERNAME || password !== adminPassword) {
+      return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401 });
+    }
     const token = crypto.randomUUID() + crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
 
