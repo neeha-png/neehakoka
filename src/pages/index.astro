@@ -1,12 +1,16 @@
 ---
-// index.astro - Consolidated Smooth Scrolling Single-Page Portfolio
+// index.astro — Single-page portfolio with smooth-scroll sections.
+// All five sections (Home, About, Works, Blog, Contact) live in one file
+// so the nav anchor links (#home, #about, etc.) work without page transitions.
+// The ChatWidget floating button is mounted outside the scroll container so it
+// stays in the bottom-right corner regardless of scroll position.
 import Layout from '../layouts/Layout.astro';
-import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontmatter fence where it belongs
+import ChatWidget from '../components/ChatWidget.astro';
 ---
 <Layout title="Neeha Koka | Portfolio">
 	<div style="max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 80px; padding: 40px 24px;">
 		
-		<!-- 1. HOME / HERO SECTION -->
+		<!-- 1. HERO — name, title, tagline, CTA button that scrolls to #works -->
 		<section id="home" style="min-height: 70vh; display: flex; flex-direction: column; justify-content: center; gap: 24px;">
 			<h1 style="font-size: 48px; font-weight: 800; line-height: 1.2; margin: 0;">
 				Hi, I'm <span style="color: #3B82F6;">Neeha Koka</span>
@@ -24,7 +28,7 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 			</div>
 		</section>
 
-		<!-- 2. ABOUT ME SECTION -->
+		<!-- 2. ABOUT — bio paragraph, education card, language stack icon grid -->
 		<section id="about" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
 			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">About Me</h2>
 			<p style="font-size: 17px; line-height: 1.6; opacity: 0.8; margin: 0;">
@@ -45,7 +49,8 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 					<h3 style="font-size: 20px; font-weight: 700; color: #3B82F6; margin-bottom: 12px;">Language Stack </h3>
 		
 
-					<!-- Neatly aligned 6-Column Grid Layout matching the dark theme of image_3ed43a.jpg -->
+					<!-- 6-column icon grid: each card has an SVG logo + language name.
+				     Cards lift on hover via inline onmouseover (no external CSS class needed). -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 16px; width: 100%;">
 
     <!-- HTML Card (Dark Slate Theme) -->
@@ -115,7 +120,8 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 			</div>
 		</section>
 
-		<!-- 3. WORKS / PROJECTS SECTION -->
+		<!-- 3. WORKS — accordion project cards. Each card has a visible summary line
+		     and a hidden detail panel revealed by the toggle button below it. -->
 		<section id="works" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
 			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">Technical Project Showcases</h2>
 			
@@ -174,7 +180,8 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 			</div>
 		</section>
 
-		<!-- 3.5 BLOGS SECTION -->
+		<!-- 4. BLOG — hardcoded previews of the two published posts.
+		     Links to /blog/first-post and /blog/learning-security (rendered from Markdown). -->
 		<section id="blogs" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px;">
 			<h2 style="font-size: 32px; font-weight: 800; margin: 0;">The Engineering Blog</h2>
 			<p style="font-size: 16px; opacity: 0.8; margin: 0;">Documenting my daily learning process, tech insights, and building steps.</p>
@@ -224,7 +231,8 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 			</div>
 		</section>
 
-		<!-- 4. CONTACT SECTION -->
+		<!-- 5. CONTACT — duplicate of contact.astro form, scoped to this page
+		     with sp- prefixed IDs to avoid conflicts if both pages ever co-exist. -->
 <section id="contact" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 60px; padding-bottom: 40px;">
     <div>
         <h2 style="font-size: 32px; font-weight: 800; margin: 0;">Get In Touch</h2>
@@ -256,7 +264,7 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 	</div>
 	<ChatWidget />
 <script is:inline>
-	// Project expand/collapse
+	// Project expand/collapse — IIFE to scope variables and avoid polluting window
 	(() => {
 		const buttons = document.querySelectorAll('.sp-project-more');
 		buttons.forEach((btn) => {
@@ -270,7 +278,7 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 		});
 	})();
 
-	// Blog expand/collapse
+	// Blog expand/collapse — same IIFE pattern, separate scope from projects
 	(() => {
 		const buttons = document.querySelectorAll('.sp-blog-more');
 		buttons.forEach((btn) => {
@@ -283,7 +291,7 @@ import ChatWidget from '../components/ChatWidget.astro'; // Moved inside frontma
 			});
 		});
 	})();
-	// Contact form submission
+	// Contact form — mirrors contact.astro logic but targets sp-* IDs
 (() => {
     const form = document.getElementById('sp-contact-form');
     const statusMessage = document.getElementById('sp-form-status');

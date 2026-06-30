@@ -1,40 +1,28 @@
+import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { rateLimitByIp } from '../../lib/rateLimit';
-import { getProfileContext } from '../../lib/profileContext';
+import { cvMarkdown } from '../../data/cv';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
+type RequestBody = { message: string; history?: ChatMessage[] };
 
-type RequestBody = {
-  message: string;
-  history?: ChatMessage[];
-};
+const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 
-export async function POST({ request }: { request: Request }) {
+const systemPrompt = [
+  'Act as an "Ask my Résumé" chatbot.',
+  'Ground ALL answers strictly in the provided CV data below.',
+  'If asked about salary, decline gracefully: "I cannot discuss specific salary requirements here, please reach out directly via email".',
+  'If asked an out-of-scope question (e.g., "Write a Python script", "What is the capital of France?"), refuse politely.',
+  'Keep answers concise (2-3 sentences max).',
+  '\n---\nCV DATA:\n' + cvMarkdown,
+].join('\n');
+
+export const POST: APIRoute = async ({ request }) => {
   const limiter = await rateLimitByIp(request, 'chat', 6);
   if (!limiter.allowed) {
     return new Response(
       JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }),
       { status: 429, headers: { 'Content-Type': 'application/json' } },
-    );
-  }
-
-  // ✅ Handles: plain secret, Secrets Store binding, and local .dev.vars
-  let apiKey: string | null = null;
-  try {
-    const geminiBinding = (env as any).GEMINI_API_KEY;
-    if (typeof geminiBinding === 'string' && geminiBinding.trim().length > 0) {
-      apiKey = geminiBinding.trim();
-    } else if (geminiBinding && typeof geminiBinding.get === 'function') {
-      apiKey = await geminiBinding.get();
-    }
-  } catch {
-    apiKey = null;
-  }
-
-  if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
@@ -49,65 +37,51 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 
-  const profileContext = getProfileContext();
+  const geminiApiKey = (env as any).GEMINI_API_KEY as string | undefined;
+  if (!geminiApiKey) {
+    return new Response(JSON.stringify({ error: 'Missing GEMINI_API_KEY.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-  const trimmedHistory = history.slice(-10);
-  const chatTranscript = [
-    ...trimmedHistory,
-    { role: 'user' as const, content: userMessage },
+  // Build Gemini contents array (role must be "user" or "model")
+  const contents = [
+    ...history.slice(-6).map((m: ChatMessage) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    })),
+    { role: 'user', parts: [{ text: userMessage }] },
   ];
 
-  const promptText = [
-    profileContext,
-    "\n---\nConversation:",
-    ...chatTranscript.map((m) => `${m.role.toUpperCase()}: ${m.content}`),
-    "\nASSISTANT:",
-  ].join("\n");
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents,
+        generationConfig: { maxOutputTokens: 220, temperature: 0.4 },
+      }),
+    },
+  );
 
-  // ✅ Updated to gemini-2.0-flash
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: promptText }],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 700,
-      },
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
+  if (!geminiRes.ok) {
+    console.error('Gemini API error:', geminiRes.status, await geminiRes.text());
     return new Response(
-      JSON.stringify({ error: 'Gemini request failed.', details: text || undefined }),
+      JSON.stringify({ error: 'AI service error. Please try again.' }),
       { status: 502, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
-  const data = await res.json() as {
-    candidates?: Array<{
-      content?: {
-        parts?: Array<{ text?: string }>;
-      };
-    }>;
-  };
-
+  const data = await geminiRes.json() as any;
   const reply =
-    data?.candidates?.[0]?.content?.parts
-      ?.map((p) => p?.text)
-      .filter(Boolean)
-      .join('') || 'Sorry—could not generate a reply right now.';
+    (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim() ||
+    "Sorry, I didn't get a response.";
 
   return new Response(JSON.stringify({ reply }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
-}
+};
