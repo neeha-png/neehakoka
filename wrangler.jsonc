@@ -25,6 +25,44 @@
   "observability": {
     "enabled": true
   },
+
+  // Workers Rate Limiting API — edge-native IP rate limiting enforced inside
+  // the Cloudflare network BEFORE the Worker script even executes.
+  //
+  // Engineering advantage over the existing D1-based rateLimitByIp():
+  //   • Enforced at the edge PoP — attacker traffic is dropped without hitting
+  //     D1 or allocating Worker CPU time.
+  //   • Cannot be bypassed by a Worker-level bug or a D1 write failure.
+  //   • Two separate namespaces (namespace_id "1001" vs "1002") so contact and
+  //     chat counters are tracked independently.
+  //
+  // Usage in a route handler (e.g. contact.ts):
+  //   const { success } = await (env as any).CONTACT_RATE_LIMITER.limit({ key: clientIp });
+  //   if (!success) return new Response('Too many requests', { status: 429 });
+  //
+  // The existing D1-based limiter is kept as a second layer — defense in depth.
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "CONTACT_RATE_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": {
+          "limit": 3,
+          "period": 60
+        }
+      },
+      {
+        "name": "CHAT_RATE_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1002",
+        "simple": {
+          "limit": 8,
+          "period": 60
+        }
+      }
+    ]
+  },
   "vars": {
     "TO_EMAIL": "neehasm0@gmail.com",
     "ADMIN_USERNAME": "admin"
