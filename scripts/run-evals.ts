@@ -1,3 +1,17 @@
+// run-evals.ts — Automated behavioural eval suite for the /api/chat AI endpoint.
+//
+// Runs 20 deterministic test cases covering five categories:
+//   • Profile facts      — verifies CV-grounded answers (education, projects, location)
+//   • Guardrails         — salary refusal phrasing must match the system prompt exactly
+//   • Out-of-scope       — coding requests and trivia must be politely declined
+//   • Grounding checks   — responses must cite specific details (e.g. "roll number lookup")
+//   • Conciseness        — answers kept to ≤3 sentences / ≤520 chars
+//
+// Usage:
+//   npx tsx scripts/run-evals.ts                        # runs against localhost:8787
+//   BASE_URL=https://your-worker.workers.dev npx tsx scripts/run-evals.ts
+//
+// Exit codes: 0 = all pass | 1 = one or more failures  (CI-friendly)
 const env = (globalThis as any).process?.env ?? ({} as Record<string, string | undefined>);
 const BASE_URL = (env.BASE_URL as string | undefined) ?? "http://localhost:8787";
 const CHAT_URL = `${BASE_URL}/api/chat`;
