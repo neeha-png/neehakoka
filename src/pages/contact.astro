@@ -2,7 +2,10 @@
 // contact.astro — Dedicated contact page with a full-page form.
 // Also accessible as an inline section on the homepage.
 // Form data is submitted via fetch to /api/contact (server-side validation + D1 + Resend).
+// Cloudflare Turnstile widget is rendered before the submit button; the token it produces
+// is included in the POST payload and verified server-side in /api/contact.ts.
 import Layout from '../layouts/Layout.astro';
+const { nonce } = Astro.locals;
 ---
 
 <Layout title="Contact Me | Personal Portfolio" description="Get in touch with Neeha Koka — drop a message and I will get back to you.">
@@ -56,14 +59,25 @@ import Layout from '../layouts/Layout.astro';
         ></textarea>
       </div>
 
-      <!-- Submit button -->
+      <!-- Cloudflare Turnstile bot-protection widget.
+           Renders a challenge (or invisible token) before the form can be submitted.
+           Replace YOUR_SITE_KEY below with the Site Key from the Cloudflare dashboard
+           (Turnstile → Sites → your site). The secret key goes in wrangler as a secret:
+             wrangler secret put TURNSTILE_SECRET_KEY
+           data-theme="dark" matches the portfolio's dark-first design. -->
+      <div class="cf-turnstile"
+           data-sitekey="YOUR_SITE_KEY"
+           data-theme="dark"
+           style="margin-bottom: 8px;">
+      </div>
+
+      <!-- Submit button — hover handled by CSS (.contact-submit:hover) to comply with CSP -->
       <div>
         <button
           type="submit"
           id="submit-btn"
+          class="contact-submit"
           style="background-color: #3B82F6; color: #ffffff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: auto;"
-          onmouseover="this.style.backgroundColor='#2563EB'"
-          onmouseout="this.style.backgroundColor='#3B82F6'"
         >
           Send Message
         </button>
@@ -73,6 +87,21 @@ import Layout from '../layouts/Layout.astro';
       <p id="form-status" style="margin-top: 16px; padding: 12px; border-radius: 8px; text-align: center; font-weight: 500; display: none;"></p>
     </form>
   </main>
+<!-- Cloudflare Turnstile loader — must be loaded as an external script so it is
+     covered by the 'self' + challenges.cloudflare.com allowlist in the CSP.
+     async defer keeps it non-blocking; Turnstile auto-renders any .cf-turnstile div. -->
+<script is:inline nonce={nonce} src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style>
+  /* Submit button hover handled via CSS to comply with the strict CSP
+     (inline onmouseover/onmouseout attributes are blocked by script-src). */
+  .contact-submit:hover:not(:disabled) {
+    background-color: #2563EB !important;
+  }
+  .contact-submit:disabled {
+    cursor: not-allowed;
+  }
+</style>
 </Layout>
 
 <script>
@@ -94,12 +123,15 @@ import Layout from '../layouts/Layout.astro';
       statusMessage.style.color = '#ffffff';
       statusMessage.textContent = 'Sending your message...';
 
-      // Collect form values into a plain object for JSON serialisation
+      // Collect form values into a plain object for JSON serialisation.
+      // Also grab the Turnstile challenge token — the server verifies this
+      // against Cloudflare's siteverify API before accepting the submission.
       const formData = new FormData(form);
       const payload = {
         name: formData.get('name'),
         email: formData.get('email'),
         message: formData.get('message'),
+        'cf-turnstile-response': (window as any).turnstile?.getResponse() ?? '',
       };
 
       try {
@@ -113,11 +145,13 @@ import Layout from '../layouts/Layout.astro';
         const result = await response.json() as { message?: string; error?: string };
 
         if (response.ok) {
-          // Success: show green banner and reset the form fields
+          // Success: show green banner, reset the form fields, and refresh the Turnstile
+          // widget so a subsequent submission generates a fresh challenge token.
           statusMessage.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
           statusMessage.style.color = '#4ade80';
           statusMessage.textContent = result.message || 'Success! Your message was sent.';
           form.reset();
+          (window as any).turnstile?.reset();
         } else {
           // Server-side validation failure: show the API's error message in red
           statusMessage.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
