@@ -1,15 +1,18 @@
-// external-data.ts — Resilient external API integration endpoint.
-// Fetches public GitHub repos for the Cloudflare org and caches the result at the edge.
-// If the external API is slow (>2.5s) or returns an error, falls back to stale cache
-// and then to a mock dataset — so the UI never breaks due to an upstream failure.
-
+// external-data.ts — GET /api/external-data
+// Fetches the Cloudflare public repo list from GitHub and returns a normalised
+// JSON payload. Implements a three-layer resilience strategy so the endpoint
+// never returns an error to the browser:
+//   Layer 1 — Cloudflare Cache API (edge hit, ~0ms latency)
+//   Layer 2 — Live GitHub fetch with 2 500 ms abort timeout
+//   Layer 3 — Stale cache entry, then static mock dataset as last resort
+// An optional EXTERNAL_API_KEY wrangler secret is forwarded as a Bearer token
+// to raise the GitHub API rate limit from 60 → 5 000 req/hr.
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
 // The external API we are integrating with
 const EXTERNAL_API_URL = 'https://api.github.com/users/cloudflare/repos';
-
-// Cache key used to store/retrieve the response in Cloudflare's Cache API
+// Cache namespace — bump the version suffix to invalidate all edge entries
 const CACHE_NAME = 'integrauth:external-data:v1';
 
 // Static fallback dataset returned when the external API is unavailable and no cache exists.
