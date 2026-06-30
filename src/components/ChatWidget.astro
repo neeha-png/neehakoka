@@ -1,10 +1,15 @@
 ---
-// Floating chat widget UI
+// ChatWidget.astro — Floating "Ask My Résumé" chat widget.
+// Renders a fixed-position FAB button that expands into a chat panel.
+// All API calls go to /api/chat which is grounded to the CV context.
 ---
 
+<!-- Outer wrapper fixed to bottom-right corner of the viewport -->
 <div id="chat-widget" style="position: fixed; right: 18px; bottom: 18px; z-index: 9999; width: 340px; max-width: calc(100vw - 36px); font-family: inherit;">
 
+  <!-- Floating action button — click to open the chat panel -->
   <button id="chat-fab" type="button" aria-label="Open chat" style="width: 56px; height: 56px; border-radius: 999px; background: rgba(59,130,246,0.95); border: 1px solid rgba(59,130,246,0.95); box-shadow: 0 18px 40px rgba(0,0,0,0.45); cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    <!-- Chat bubble SVG icon -->
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M20 14.5c0 1.7-1.4 3-3 3H9l-4 3v-3.4c-.6-.5-1-1.2-1-2V6.5c0-1.7 1.4-3 3-3h10c1.6 0 3 1.3 3 3v8z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
       <path d="M8 9h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
@@ -12,23 +17,30 @@
     </svg>
   </button>
 
+  <!-- Chat panel — hidden by default, toggled by the FAB button -->
   <div id="chat-panel" style="margin-top:10px; display:none; flex-direction:column; gap:10px; padding: 12px; background: rgba(2,6,23,0.85); border: 1px solid rgba(148,163,184,0.25); border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.35); backdrop-filter: blur(10px);">
 
+    <!-- Header row: title, subtitle, and close (×) button -->
     <div id="chat-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 0 2px 10px 2px;">
       <div style="display:flex; flex-direction:column; line-height:1.1;">
         <span style="font-weight:800; color:#fff; font-size:14px;">Chat with Neeha</span>
         <span style="font-size:12px; opacity:0.75; color:#cbd5e1;">Questions limited to this portfolio</span>
       </div>
+      <!-- Minimize/close button — collapses the panel back to FAB -->
       <button id="chat-minimize" type="button" aria-label="Close chat" style="all:unset; cursor:pointer; color:#cbd5e1; font-weight:800; padding:6px 10px; border:1px solid rgba(148,163,184,0.25); border-radius:10px;">
         ×
       </button>
     </div>
+
+    <!-- Scrollable message list — new bubbles are appended here via JS -->
     <div id="chat-messages" style="height: 280px; overflow:auto; display:flex; flex-direction:column; gap:10px; padding-right: 6px;">
+      <!-- Initial welcome message shown before any user input -->
       <div id="chat-welcome" style="align-self:flex-start; max-width: 85%; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); padding: 10px 12px; border-radius: 12px; color:#e2e8f0;">
         hi, I am here to assist you. what would you like to know abount me?
       </div>
     </div>
 
+    <!-- Input form: textarea auto-grows up to 110px, Send submits on click or Enter -->
     <form id="chat-form" style="display:flex; gap:10px; align-items:flex-end;">
       <textarea id="chat-input" rows="1" placeholder="Type your question…" style="flex:1; resize:none; border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(148,163,184,0.25); background: rgba(15,23,42,0.6); color:#fff; outline:none; min-height: 42px; max-height: 110px;" maxlength="600"></textarea>
       <button id="chat-send" type="submit" style="background:#3B82F6; color:#fff; font-weight:700; border:none; border-radius: 12px; padding: 10px 14px; cursor:pointer; min-height: 42px;">
@@ -36,12 +48,15 @@
       </button>
     </form>
 
+    <!-- Error banner shown on rate-limit hits or network failures -->
     <div id="chat-error" style="display:none; color:#f87171; font-size:13px; font-weight:600; padding: 8px 10px; background: rgba(239,68,68,0.12); border-radius: 10px; border: 1px solid rgba(239,68,68,0.25);"></div>
   </div>
 </div>
 
 <script is:inline>
+  // IIFE wraps all widget logic to avoid polluting the global scope
   (() => {
+    // Cache references to all DOM elements used by the widget
     const fab = document.getElementById('chat-fab');
     const minimizeBtn = document.getElementById('chat-minimize');
     const panel = document.getElementById('chat-panel');
@@ -50,6 +65,8 @@
     const input = document.getElementById('chat-input');
     const errorEl = document.getElementById('chat-error');
 
+    // Creates and appends a chat bubble to the message list.
+    // User messages align right (blue tint); assistant messages align left (grey tint).
     function appendMessage(role, text) {
       const bubble = document.createElement('div');
       bubble.style.maxWidth = '85%';
@@ -70,22 +87,30 @@
 
       bubble.textContent = text;
       messagesEl.appendChild(bubble);
+      // Auto-scroll to the latest message
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
+    // Shows or hides the error banner below the input form
     function setError(msg) {
       if (!errorEl) return;
       errorEl.textContent = msg;
       errorEl.style.display = msg ? 'block' : 'none';
     }
 
-    let history = []; // {role, content}
+    // In-memory conversation history — sent to /api/chat so the model has context.
+    // Capped at 16 entries to prevent unbounded memory growth.
+    let history = [];
 
+    // Sends a message to /api/chat and streams the reply token-by-token via SSE.
+    // Shows a "thinking" indicator until the first chunk arrives, then populates
+    // the reply bubble incrementally so the user sees text appear in real time.
     async function send(message) {
       setError('');
       appendMessage('user', message);
       history.push({ role: 'user', content: message });
 
+      // Typing indicator shown while the first SSE chunk is in flight
       const typing = document.createElement('div');
       typing.style.alignSelf = 'flex-start';
       typing.style.maxWidth = '85%';
@@ -98,6 +123,7 @@
       messagesEl.appendChild(typing);
       messagesEl.scrollTop = messagesEl.scrollHeight;
 
+      // POST to the SSE endpoint — the response body is a stream, not a JSON blob
       let res;
       try {
         res = await fetch('/api/chat', {
@@ -111,24 +137,74 @@
         return;
       }
 
-      typing.remove();
-
-      let data;
-      try { data = await res.json(); } catch { data = {}; }
-
+      // Non-2xx responses are JSON error objects (rate limit, validation, etc.)
       if (!res.ok) {
+        typing.remove();
+        let data = {};
+        try { data = await res.json(); } catch {}
         const msg = data?.error || '';
         setError(msg.includes('Rate limit') ? 'Too many messages. Please wait a moment.' : 'Chat failed. Please try again.');
         return;
       }
 
-      const reply = data?.reply || 'No reply received.';
-      appendMessage('assistant', reply);
-      history.push({ role: 'assistant', content: reply });
+      // Replace the typing indicator with an empty bubble that will fill as chunks arrive
+      typing.remove();
+      const replyBubble = document.createElement('div');
+      replyBubble.style.alignSelf = 'flex-start';
+      replyBubble.style.maxWidth = '85%';
+      replyBubble.style.padding = '10px 12px';
+      replyBubble.style.borderRadius = '12px';
+      replyBubble.style.background = 'rgba(148,163,184,0.08)';
+      replyBubble.style.border = '1px solid rgba(148,163,184,0.18)';
+      replyBubble.style.color = '#e2e8f0';
+      replyBubble.style.lineHeight = '1.45';
+      messagesEl.appendChild(replyBubble);
 
+      // Read the SSE stream — each event: data: {"response":"..."} or data: [DONE]
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullReply = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          // Decode the incoming chunk and append to any incomplete line from last read
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          // Keep the potentially incomplete last line in the buffer for the next chunk
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const payload = line.slice(6).trim();
+            if (payload === '[DONE]') break;
+            try {
+              const parsed = JSON.parse(payload);
+              if (parsed.response) {
+                fullReply += parsed.response;
+                replyBubble.textContent = fullReply;
+                // Auto-scroll to bottom as new tokens arrive
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            } catch { /* malformed SSE line — skip */ }
+          }
+        }
+      } catch {
+        // Stream read error after headers were received — show what arrived so far
+        if (!fullReply) setError('Stream interrupted. Please try again.');
+      }
+
+      const reply = fullReply.trim() || 'No reply received.';
+      // Add the completed response to history for multi-turn context
+      history.push({ role: 'assistant', content: reply });
+      // Keep history bounded to the last 16 turns to avoid memory growth
       if (history.length > 16) history = history.slice(-16);
     }
 
+    // Handle form submission — prevent default, validate, and send
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const message = String(input.value || '').trim();
@@ -138,17 +214,19 @@
       await send(message);
     });
 
+    // Auto-resize the textarea as the user types, up to the max-height cap
     input.addEventListener('input', () => {
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 110) + 'px';
     });
 
-    // Open/close chat
+    // FAB click — expand the chat panel and mark it as open for accessibility
     fab?.addEventListener('click', () => {
       panel.style.display = 'flex';
       fab.setAttribute('aria-expanded', 'true');
     });
 
+    // Minimize button — toggle the panel open/closed and flip the button label
     minimizeBtn?.addEventListener('click', () => {
       const isVisible = panel.style.display !== 'none';
       panel.style.display = isVisible ? 'none' : 'flex';
@@ -157,4 +235,3 @@
     });
   })();
 </script>
-

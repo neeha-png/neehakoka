@@ -1,50 +1,94 @@
 ---
-// Layout.astro - The main skeleton for all pages
+// Layout.astro — Shared HTML shell used by every page.
+// Injects Open Graph meta tags, canonical URL, skip-to-content link,
+// sticky header with nav + social icons, dark mode toggle, and footer.
+
 interface Props {
 	title: string;
+	description?: string;
+	ogImage?: string;
 }
 
-const { title } = Astro.props;
+const {
+	title,
+	// Default description used when individual pages don't supply their own
+	description = "Neeha Koka — Student software engineer based in Hyderabad. Portfolio of projects, blog posts, and contact.",
+	// Default OG image; individual pages can override with a custom preview image
+	ogImage = "/og-default.png",
+} = Astro.props;
+
+// Build the canonical URL from the current pathname + the site base set in astro.config.mjs
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? "https://neehakoka.neehasm0.workers.dev");
+
+// Read the theme cookie server-side so the correct class lands in the HTML before paint.
+// This eliminates any flash of wrong theme on returning visits (cookie is set after first visit).
+const cookieHeader = Astro.request.headers.get('cookie') ?? '';
+const themeCookieMatch = cookieHeader.match(/(?:^|;\s*)theme=([^;]+)/);
+const serverTheme = themeCookieMatch?.[1]?.trim() ?? null;
+// Default to dark (portfolio is dark-first); light only when cookie explicitly says 'light'
+const initialDark = serverTheme !== 'light';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class={initialDark ? 'dark' : ''}>
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Personal Professional Portfolio" />
+		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<!-- Canonical URL prevents duplicate-content SEO penalties when the same page
+		     is reachable via multiple paths (e.g. with/without trailing slash) -->
+		<link rel="canonical" href={canonicalURL.href} />
 		<title>{title}</title>
 
+		<!-- Open Graph tags — used by social platforms (LinkedIn, Twitter, WhatsApp)
+		     when someone shares a link to any page on this site -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL.href} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:site_name" content="Neeha Koka" />
+
+		<!-- Twitter / X card — controls how links appear when shared on Twitter/X -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+
+		<!-- Theme bootstrap script: only runs on first visit (no cookie yet).
+		     On returning visits the server already applied the correct class via the cookie,
+		     so this block is effectively a no-op and causes zero flash. -->
 		<script is:inline>
-			const theme = (() => {
-				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-					return localStorage.getItem('theme');
+			if (!document.cookie.includes('theme=')) {
+				// First visit — detect system preference and store as a cookie
+				// so the server can pre-apply the class on every subsequent request.
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				const theme = prefersDark ? 'dark' : 'light';
+				document.cookie = 'theme=' + theme + '; Path=/; Max-Age=31536000; SameSite=Lax';
+				// Adjust the class the server already rendered (dark by default)
+				if (!prefersDark) {
+					document.documentElement.classList.remove('dark');
 				}
-				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-					return 'dark';
-				}
-				return 'light';
-			})();
-		
-			if (theme === 'light') {
-				document.documentElement.classList.remove('dark');
-			} else {
-				document.documentElement.classList.add('dark');
 			}
-			window.localStorage.setItem('theme', theme);
 		</script>
 	</head>
 	<body class="bg-white text-slate-800 dark:bg-[#121826] dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col font-sans">
-		
-		<!-- DYNAMIC RESPONSIVE STICKY HEADER -->
+
+		<!-- Skip-to-content link: visually hidden until focused via Tab key.
+		     Required for WCAG AA keyboard navigation compliance. -->
+		<a href="#main-content" class="skip-link">Skip to main content</a>
+
+		<!-- Sticky header: stays at the top of the viewport while the user scrolls -->
 		<header class="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80" style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(148, 163, 184, 0.2); background-color: var(--header-bg, rgba(255, 255, 255, 0.8)); color: inherit;">
 			<div class="nav-container" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; flex-wrap: wrap; gap: 16px;">
-				
+
+				<!-- Site logo / home link -->
 				<a href="#" style="font-size: 18px; font-weight: 700; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 6px;">
 					<span>&lt;/&gt;</span> Portfolio
 				</a>
-				
+
+				<!-- Primary navigation links — scroll to in-page sections on the homepage -->
 				<nav class="nav-links" style="display: flex; gap: 24px; align-items: center;">
 					<a href="/#home" style="text-decoration: none; color: inherit; font-size: 14px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Home</a>
 					<a href="/#about" style="text-decoration: none; color: inherit; font-size: 14px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">About</a>
@@ -52,81 +96,85 @@ const { title } = Astro.props;
 					<a href="/#blogs" style="text-decoration: none; color: inherit; font-size: 14px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Blogs</a>
 					<a href="/#contact" style="text-decoration: none; color: inherit; font-size: 14px; font-weight: 500; opacity: 0.85; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#3B82F6'" onmouseout="this.style.opacity='0.85'; this.style.color='inherit'">Contact</a>
 				</nav>
-				
+
+				<!-- Social icon links + dark mode toggle -->
 				<div class="nav-socials" style="display: flex; align-items: center; gap: 16px;">
 
-    <!-- GitHub -->
-    <a href="https://github.com/neeha-png" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#000000'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
-            <path d="M9 18c-4.51 2-5-2-7-2"></path>
-        </svg>
-    </a>
+					<!-- GitHub profile link -->
+					<a href="https://github.com/neeha-png" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#000000'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+							<path d="M9 18c-4.51 2-5-2-7-2"></path>
+						</svg>
+					</a>
 
-    <!-- LinkedIn -->
-    <a href="https://www.linkedin.com/in/neeha-koka-429b99301/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#0077B5'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-            <rect width="4" height="12" x="2" y="9"></rect>
-            <circle cx="4" cy="4" r="2"></circle>
-        </svg>
-    </a>
+					<!-- LinkedIn profile link -->
+					<a href="https://www.linkedin.com/in/neeha-koka-429b99301/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#0077B5'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+							<rect width="4" height="12" x="2" y="9"></rect>
+							<circle cx="4" cy="4" r="2"></circle>
+						</svg>
+					</a>
 
-    <!-- Email -->
-    <a href="mailto:kokaneeha24@gmail.com" aria-label="Email" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#EA4335'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-        </svg>
-    </a>
+					<!-- Email mailto link -->
+					<a href="mailto:kokaneeha24@gmail.com" aria-label="Email" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#EA4335'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<rect width="20" height="16" x="2" y="4" rx="2"></rect>
+							<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+						</svg>
+					</a>
 
-    <!-- WhatsApp (NEW) -->
-    <a href="https://wa.me/9398461003?text=hi%20neeha%2C%20i%20would%20to%20connect%20with%20you" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#25D366'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-        </svg>
-    </a>
+					<!-- WhatsApp direct message link -->
+					<a href="https://wa.me/9398461003?text=hi%20neeha%2C%20i%20would%20to%20connect%20with%20you" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#25D366'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+						</svg>
+					</a>
 
-    <!-- Phone (NEW) -->
-    <a href="tel:+9398461003" aria-label="Phone" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#6366F1'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 5.55 5.55l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path>
-        </svg>
-    </a>
+					<!-- Phone call link -->
+					<a href="tel:+9398461003" aria-label="Phone" style="text-decoration: none; color: #475569; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" onmouseover="this.style.opacity='1'; this.style.color='#6366F1'" onmouseout="this.style.opacity='0.8'; this.style.color='#475569'">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 5.55 5.55l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path>
+						</svg>
+					</a>
 
-    <!-- Theme Toggle -->
-    <button id="themeToggle" style="background: transparent; border: none; cursor: pointer; padding: 4px; color: #D97706; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" aria-label="Toggle Theme" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-        </svg>
-    </button>
+					<!-- Dark/light mode toggle button — icon updates via JS after click -->
+					<button id="themeToggle" style="background: transparent; border: none; cursor: pointer; padding: 4px; color: #D97706; opacity: 0.8; display: flex; align-items: center; transition: 0.2s;" aria-label="Toggle Theme" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+						</svg>
+					</button>
 
-</div>
+				</div>
 
 			</div>
 		</header>
 
-		<main class="flex-grow max-w-5xl w-full mx-auto p-4 mt-8">
+		<!-- Main content area — targeted by the skip-to-content link above -->
+		<main id="main-content" class="flex-grow max-w-5xl w-full mx-auto p-4 mt-8">
 			<slot />
 		</main>
 
+		<!-- Footer: copyright notice -->
 		<footer style="width: 100%; max-width: 850px; margin: 40px auto 0 auto; padding: 24px 0; border-top: 1px solid rgba(148, 163, 184, 0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 14px;">
-    
-    <!-- Left Side: Copyright Text -->
-    <div style="color: #475569; font-weight: 500;">
-        &copy; Neeha Koka. All rights reserved.
-    </div>
-
-</footer>
+			<div style="color: #475569; font-weight: 500;">
+				&copy; Neeha Koka. All rights reserved.
+			</div>
+		</footer>
 
 		<script>
+			// Toggles the 'dark' class on <html> and writes a cookie so the
+			// server pre-applies the correct class on the very next page load (zero flash).
 			const handleToggleClick = () => {
 				const element = document.documentElement;
 				element.classList.toggle("dark");
-				
+
 				const isDark = element.classList.contains("dark");
-				localStorage.setItem("theme", isDark ? "dark" : "light");
-				
+				// 1-year cookie, readable server-side on every subsequent SSR request
+				document.cookie = 'theme=' + (isDark ? 'dark' : 'light') + '; Path=/; Max-Age=31536000; SameSite=Lax';
+
+				// Swap the button label between moon (dark) and sun (light) emoji
 				const button = document.getElementById("themeToggle");
 				if (button) {
 					button.innerText = isDark ? "🌙" : "☀️";
@@ -137,35 +185,55 @@ const { title } = Astro.props;
 				const button = document.getElementById("themeToggle");
 				if (button) {
 					button.addEventListener("click", handleToggleClick);
-					// Set initial button icon based on current state
+					// Set the correct icon on initial load based on the current theme
 					const isDark = document.documentElement.classList.contains("dark");
 					button.innerText = isDark ? "🌙" : "☀️";
 				}
 			};
 
-			// Initialize on page load
+			// Initialise on first load
 			setupToggle();
 		</script>
 	</body>
 </html>
 
 <style is:global>
-	/* Use consistent design spacing and colors */
-	* 
-{ 
-		box-sizing: border-box; 
-		margin: 0; 
-		padding: 0; 
+	/* Skip link: off-screen by default, slides into view on keyboard focus */
+	.skip-link {
+		position: absolute;
+		top: -48px;
+		left: 16px;
+		background: #3B82F6;
+		color: #ffffff;
+		padding: 8px 16px;
+		border-radius: 0 0 6px 6px;
+		font-size: 14px;
+		font-weight: 600;
+		text-decoration: none;
+		z-index: 9999;
+		transition: top 0.1s ease;
 	}
-	
-	html, body { 
+	.skip-link:focus {
+		top: 0;
+		outline: 2px solid #1D4ED8;
+		outline-offset: 2px;
+	}
+
+	/* Reset box model and remove default margin/padding from all elements */
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+
+	html, body {
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 		min-height: 100vh;
 		margin: 0;
 		padding: 0;
 	}
 
-	/* Force dark mode background override if class 'dark' is present */
+	/* Force dark theme colours when the 'dark' class is on <html> */
 	html.dark {
 		background-color: #121826 !important;
 		color: #f3f4f6 !important;
@@ -175,38 +243,42 @@ const { title } = Astro.props;
 		background-color: #121826 !important;
 		color: #f3f4f6 !important;
 	}
+
+	/* Smooth anchor scrolling for in-page navigation links */
 	html {
-	scroll-behavior: smooth;
-    }
-header {
-	--header-bg: rgba(255, 255, 255, 0.85);
-}
+		scroll-behavior: smooth;
+	}
 
-html.dark header {
-	--header-bg: rgba(15, 23, 42, 0.85) !important;
-}
+	/* CSS variable for the header background — switched between light and dark values */
+	header {
+		--header-bg: rgba(255, 255, 255, 0.85);
+	}
 
-/* RESPONSIVE MEDIA BREAKPOINT FOR PHONES */
-@media (max-width: 768px) {
-	.nav-container {
-		flex-direction: column !important;
-		gap: 12px !important;
-		padding: 12px 16px !important;
-		align-items: center !important;
+	html.dark header {
+		--header-bg: rgba(15, 23, 42, 0.85) !important;
 	}
-	
-	.nav-links {
-		gap: 16px !important;
-		justify-content: center !important;
-		width: 100% !important;
+
+	/* Responsive breakpoint: stack the nav vertically on small screens */
+	@media (max-width: 768px) {
+		.nav-container {
+			flex-direction: column !important;
+			gap: 12px !important;
+			padding: 12px 16px !important;
+			align-items: center !important;
+		}
+
+		.nav-links {
+			gap: 16px !important;
+			justify-content: center !important;
+			width: 100% !important;
+		}
+
+		.nav-socials {
+			width: 100% !important;
+			justify-content: center !important;
+			gap: 20px !important;
+			border-top: 1px solid rgba(148, 163, 184, 0.1);
+			padding-top: 8px;
+		}
 	}
-	
-	.nav-socials {
-		width: 100% !important;
-		justify-content: center !important;
-		gap: 20px !important;
-		border-top: 1px solid rgba(148, 163, 184, 0.1);
-		padding-top: 8px;
-	}
-}
 </style>
