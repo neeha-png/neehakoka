@@ -1,3 +1,7 @@
+// posts.ts — GET /api/posts
+// Returns a static list of blog post summaries as JSON.
+// Posts are defined inline here for zero-latency reads; a future iteration
+// could query the Astro content collection or a D1 table at runtime.
 import type { APIRoute } from 'astro';
 
 const POSTS = [

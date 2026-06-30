@@ -1,7 +1,17 @@
+// external-data.ts — GET /api/external-data
+// Fetches the Cloudflare public repo list from GitHub and returns a normalised
+// JSON payload. Implements a three-layer resilience strategy so the endpoint
+// never returns an error to the browser:
+//   Layer 1 — Cloudflare Cache API (edge hit, ~0ms latency)
+//   Layer 2 — Live GitHub fetch with 2 500 ms abort timeout
+//   Layer 3 — Stale cache entry, then static mock dataset as last resort
+// An optional EXTERNAL_API_KEY wrangler secret is forwarded as a Bearer token
+// to raise the GitHub API rate limit from 60 → 5 000 req/hr.
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
 const EXTERNAL_API_URL = 'https://api.github.com/users/cloudflare/repos';
+// Cache namespace — bump the version suffix to invalidate all edge entries
 const CACHE_NAME = 'integrauth:external-data:v1';
 
 const EXTERNAL_DATA_MOCK = {
