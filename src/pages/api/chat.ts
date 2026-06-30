@@ -1,13 +1,24 @@
+// chat.ts — "Ask My Résumé" AI chatbot endpoint.
+// Accepts a POST with { message, history[] } and streams the reply via SSE.
+// Uses Cloudflare Workers AI (llama-3.1-8b-instruct) via the env.AI binding.
+// The SSE stream emits { response: "..." } chunks terminated by [DONE].
+
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { rateLimitByIp } from '../../lib/rateLimit';
 import { cvMarkdown } from '../../data/cv';
 
+// Shape of each turn in the conversation history sent from the frontend
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 type RequestBody = { message: string; history?: ChatMessage[] };
 
-const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+// Workers AI model — Llama 3.1 8B runs on Cloudflare's GPU infrastructure
+// without needing an external API key or incurring per-token costs
+const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
+// System prompt that grounds the model strictly to CV content.
+// The salary refusal and out-of-scope refusal lines are explicit guardrails
+// tested by the eval suite in scripts/run-evals.ts.
 const systemPrompt = [
   'Act as an "Ask my Résumé" chatbot.',
   'Ground ALL answers strictly in the provided CV data below.',
@@ -18,6 +29,7 @@ const systemPrompt = [
 ].join('\n');
 
 export const POST: APIRoute = async ({ request }) => {
+  // Block IPs that have sent more than 6 chat messages in the past hour
   const limiter = await rateLimitByIp(request, 'chat', 6);
   if (!limiter.allowed) {
     return new Response(
@@ -26,10 +38,12 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  // Parse the incoming JSON body and extract the user's message and conversation history
   const body = (await request.json()) as RequestBody;
   const userMessage = String(body?.message ?? '').trim();
   const history = Array.isArray(body?.history) ? body.history : [];
 
+  // Reject empty messages before hitting the AI binding
   if (!userMessage) {
     return new Response(JSON.stringify({ error: 'Message is required.' }), {
       status: 400,
@@ -37,51 +51,50 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const geminiApiKey = (env as any).GEMINI_API_KEY as string | undefined;
-  if (!geminiApiKey) {
-    return new Response(JSON.stringify({ error: 'Missing GEMINI_API_KEY.' }), {
+  // Ensure the Workers AI binding is available (configured in wrangler.jsonc under "ai")
+  const ai = (env as any).AI;
+  if (!ai) {
+    return new Response(JSON.stringify({ error: 'AI binding not configured.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  // Build Gemini contents array (role must be "user" or "model")
-  const contents = [
+  // Build the messages array: system prompt + last 6 history turns + current message.
+  // Workers AI uses OpenAI-compatible role names (system / user / assistant).
+  const messages = [
+    { role: 'system', content: systemPrompt },
     ...history.slice(-6).map((m: ChatMessage) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
+      role: m.role,
+      content: m.content,
     })),
-    { role: 'user', parts: [{ text: userMessage }] },
+    { role: 'user', content: userMessage },
   ];
 
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        generationConfig: { maxOutputTokens: 220, temperature: 0.4 },
-      }),
-    },
-  );
+  try {
+    // Run the model with stream: true — returns a ReadableStream of SSE events.
+    // Each event has the shape: data: {"response":"..."}\n\n
+    // The stream ends with: data: [DONE]\n\n
+    const stream = await ai.run(AI_MODEL, {
+      messages,
+      stream: true,
+      max_tokens: 220,
+    });
 
-  if (!geminiRes.ok) {
-    console.error('Gemini API error:', geminiRes.status, await geminiRes.text());
+    // Pipe the raw SSE stream directly to the browser.
+    // X-Accel-Buffering: no prevents Nginx proxies from buffering the stream.
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no',
+      },
+    });
+  } catch (err) {
+    console.error('Workers AI error:', err);
     return new Response(
       JSON.stringify({ error: 'AI service error. Please try again.' }),
       { status: 502, headers: { 'Content-Type': 'application/json' } },
     );
   }
-
-  const data = await geminiRes.json() as any;
-  const reply =
-    (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim() ||
-    "Sorry, I didn't get a response.";
-
-  return new Response(JSON.stringify({ reply }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
 };
