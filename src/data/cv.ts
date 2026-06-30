@@ -1,7 +1,8 @@
-/**
- * Hardcoded resume grounding context for the "Ask my Résumé" chatbot.
- * Must not be invented/modified with extra projects/skills.
- */
+// cv.ts — Hardcoded CV grounding context for the "Ask My Résumé" chatbot.
+// This string is injected into the Gemini system prompt at /api/chat.ts.
+// Only add real, verifiable information here — the eval suite tests these facts directly.
+// Do not invent skills, projects, or credentials that don't exist.
+
 export const cvMarkdown = `# Neeha Koka — Resume Grounding
 
 **Profile:** Student and Entry-Level Professional (Fresher) based in Hyderabad. Technical skills are emerging/fresher level.

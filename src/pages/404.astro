@@ -1,19 +1,25 @@
 ---
-// 404.astro - Custom Page Not Found
+// 404.astro — Custom "Page Not Found" error page.
+// Astro automatically serves this file when no route matches the requested URL.
 import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="404: Page Not Found | Portfolio">
+	<!-- Centred error card with a large blue 404 heading and a return-home button -->
 	<div style="max-width: 600px; margin: 100px auto; text-align: center; display: flex; flex-direction: column; gap: 20px; align-items: center;">
-		
+
+		<!-- Large accent-coloured 404 number to make the error immediately obvious -->
 		<h1 style="font-size: 72px; font-weight: 900; color: #3B82F6; margin: 0;">404</h1>
-		
+
+		<!-- Human-readable error heading -->
 		<h2 style="font-size: 24px; font-weight: 700; margin: 0;">Oops! Page Not Found</h2>
-		
+
+		<!-- Friendly explanation of what may have gone wrong -->
 		<p style="opacity: 0.8; max-w: 450px; line-height: 1.6; margin: 0;">
 			The link you followed might be broken, or the page may have been moved to a different directory layout.
 		</p>
-		
+
+		<!-- Primary CTA: takes the user back to the homepage -->
 		<div style="margin-top: 12px;">
 			<a href="/" style="display: inline-block; background-color: #3B82F6; color: white; font-weight: 500; padding: 12px 24px; border-radius: 6px; text-decoration: none; transition: 0.2s;">
 				Return Back Home

@@ -1,13 +1,14 @@
 ---
-// about.astro - Your Resume Profile Page
+// about.astro — Resume/profile page showing education, tech stack, and certifications.
 import Layout from '../layouts/Layout.astro';
 import astroLogo from '../assets/astro.svg';
 import backgroundLogo from '../assets/background.svg';
 ---
 
-<Layout title="About Me | Neeha Koka">
+<Layout title="About Me | Neeha Koka" description="Computer Science student specialising in Cybersecurity, based in Hyderabad. B.Tech at Gurunanak Institute of Technology, CGPA 8.49.">
 	<div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding: 24px 0;">
-		
+
+		<!-- Intro section: short bio paragraph separated by a bottom border -->
 		<section style="display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 24px;">
 			<h1 style="font-size: 36px; font-weight: 800;">About Me</h1>
 			<p style="font-size: 18px; line-height: 1.6; opacity: 0.8;">
@@ -15,27 +16,34 @@ import backgroundLogo from '../assets/background.svg';
 			</p>
 		</section>
 
+		<!-- Education section: institution name, dates, degree, and CGPA -->
 		<section style="display: flex; flex-direction: column; gap: 16px;">
 			<h2 style="font-size: 24px; font-weight: 700; color: #3B82F6;">Education</h2>
 			<div style="display: flex; flex-direction: column; gap: 12px;">
 				<div style="background-color: rgba(148, 163, 184, 0.03); padding: 16px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.1);">
+					<!-- Row: institution name on the left, date range on the right -->
 					<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
 						<h3 style="font-size: 18px; font-weight: 700;">Gurunanak Institute of Technology</h3>
 						<span style="font-size: 14px; opacity: 0.7;">Nov 2022 - June 2026</span>
 					</div>
 					<p style="font-size: 15px; opacity: 0.9; margin-top: 4px;">B.Tech in Computer Science and Engineering (Cybersecurity)</p>
+					<!-- CGPA highlighted in accent blue for quick scanning -->
 					<p style="font-size: 14px; color: #3B82F6; font-weight: 600; margin-top: 4px;">CGPA: 8.49 </p>
 				</div>
 			</div>
 		</section>
 
+		<!-- Side-by-side section: Language Stack grid + Certifications card -->
 		<section style="display: flex; grid-template-columns: 1fr 1fr; gap: 24px; flex-wrap: wrap;">
+
+			<!-- Language stack: 6-item grid showing technologies used in projects -->
 			<div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 12px;">
 				<h2 style="font-size: 24px; font-weight: 700; color: #3B82F6;">Language Stack (Preview)</h2>
 				<p style="font-size: 14px; opacity: 0.75; margin-top: -6px;">
 					Just a visual snapshot (not interactive).
 				</p>
 
+				<!-- 3-column icon grid — each cell shows a logo and language name -->
 				<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 6px;">
 					<!-- HTML -->
 					<div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,0.2); background-color: rgba(148,163,184,0.03);">
@@ -74,9 +82,11 @@ import backgroundLogo from '../assets/background.svg';
 					</div>
 				</div>
 			</div>
-			
+
+			<!-- Certifications section: currently one in-progress cert -->
 			<div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 12px;">
 				<h2 style="font-size: 24px; font-weight: 700; color: #3B82F6;">Certifications</h2>
+				<!-- Blue left-border card style to visually distinguish the cert block -->
 				<div style="background-color: rgba(59, 130, 246, 0.05); border-left: 4px solid #3B82F6; padding: 16px; border-radius: 4px;">
 					<h3 style="font-size: 16px; font-weight: 700;">CompTIA Security+</h3>
 					<p style="font-size: 14px; opacity: 0.8; margin-top: 4px;">In Progress — Focused on validating threat mitigation, network security principles, and risk management validation.</p>
