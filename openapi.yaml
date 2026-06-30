@@ -1,0 +1,307 @@
+﻿openapi: "3.1.0"
+info:
+  title: Neeha Koka Portfolio API
+  version: "1.0.0"
+  description: |
+    REST API powering the personal portfolio at https://neehakoka.neehasm0.workers.dev.
+    All routes run as Cloudflare Workers handlers.
+    Rate limits are enforced per-IP via Cloudflare D1 (rolling 1-hour windows).
+  contact:
+    email: neehasm0@gmail.com
+servers:
+  - url: https://neehakoka.neehasm0.workers.dev
+    description: Production (Cloudflare Workers)
+  - url: http://localhost:4321
+    description: Local dev (wrangler dev)
+
+paths:
+  /api/posts:
+    get:
+      operationId: listPosts
+      summary: List all blog posts
+      description: Returns the full static catalogue of blog posts. Data is hardcoded server-side; no database query is performed.
+      tags: [Blog]
+      responses:
+        "200":
+          description: Array of blog post summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PostSummary"
+              example:
+                - slug: first-post
+                  title: "Kicking Off My Software Engineering Portfolio"
+                  description: "An inside look into designing and architecting this portfolio."
+                  pubDate: "2026-05-29"
+        "400":
+          description: Method not allowed (non-GET request)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/posts/{slug}:
+    get:
+      operationId: getPost
+      summary: Get a single blog post by slug
+      description: Looks up a post by its URL slug (case-insensitive, hyphens normalised).
+      tags: [Blog]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: first-post
+      responses:
+        "200":
+          description: Full post object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          description: Slug parameter missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Post not found for the given slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/contact:
+    post:
+      operationId: submitContact
+      summary: Submit a contact form message
+      description: |
+        Validates the payload, saves the message to Cloudflare D1 (`submissions` table),
+        then sends a transactional email via Resend.
+        Rate-limited to 3 requests per IP per hour.
+        Returns 207 if D1 save succeeded but Resend email failed.
+      tags: [Contact]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactRequest"
+      responses:
+        "200":
+          description: Message saved and email sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          description: Validation error (missing or invalid fields)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded (3 per hour per IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Missing server-side environment variable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: D1 save succeeded but Resend email delivery failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/chat:
+    post:
+      operationId: chat
+      summary: Ask the AI résumé chatbot a question
+      description: |
+        Proxies a multi-turn conversation to the Gemini 2.5 Flash Lite API,
+        grounded with Neeha's CV context from `src/data/cv.ts`.
+        The system prompt restricts responses to CV-relevant topics only.
+        Rate-limited to 6 requests per IP per hour.
+      tags: [AI]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: AI reply for the user's message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Missing or empty message field
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded (6 per hour per IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: GEMINI_API_KEY secret not configured, or upstream API error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/external-data:
+    get:
+      operationId: getExternalData
+      summary: Fetch GitHub contribution stats
+      description: |
+        Returns public GitHub profile data for the portfolio owner.
+        Uses a three-layer resilience strategy:
+        1. Cloudflare Cache API (TTL 10 minutes)
+        2. Live fetch from api.github.com (5-second timeout, optional auth token)
+        3. Static mock data fallback if both upstream sources fail
+      tags: [External]
+      responses:
+        "200":
+          description: GitHub profile stats (may be cached or mock data)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExternalDataResponse"
+              example:
+                public_repos: 12
+                followers: 34
+                following: 20
+                source: live
+
+components:
+  schemas:
+    PostSummary:
+      type: object
+      required: [slug, title, description, pubDate]
+      properties:
+        slug:
+          type: string
+          example: first-post
+        title:
+          type: string
+          example: "Kicking Off My Software Engineering Portfolio"
+        description:
+          type: string
+          example: "An inside look into building with Astro and Cloudflare."
+        pubDate:
+          type: string
+          format: date
+          example: "2026-05-29"
+
+    Post:
+      allOf:
+        - $ref: "#/components/schemas/PostSummary"
+        - type: object
+          properties:
+            content:
+              type: string
+              description: Markdown body of the post (may be empty string for static posts)
+
+    ContactRequest:
+      type: object
+      required: [name, email, message]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Jane Smith"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        message:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          example: "Hi Neeha, I came across your portfolio and would love to connect."
+
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          example: "What programming languages does Neeha know?"
+        history:
+          type: array
+          description: Prior conversation turns for multi-turn context (last 8 pairs are sent)
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role:
+                type: string
+                enum: [user, assistant]
+              content:
+                type: string
+
+    ChatResponse:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+          example: "Neeha is proficient in Python, JavaScript, HTML, CSS, Flask, and Django."
+
+    ExternalDataResponse:
+      type: object
+      properties:
+        public_repos:
+          type: integer
+        followers:
+          type: integer
+        following:
+          type: integer
+        source:
+          type: string
+          enum: [cache, live, mock]
+          description: Indicates which data layer was used
+
+    SuccessMessage:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "Message received! I will get back to you soon."
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          example: "Rate limit exceeded. Please try again later."
+
+tags:
+  - name: Blog
+    description: Static blog post catalogue
+  - name: Contact
+    description: Contact form submission (D1 + Resend)
+  - name: AI
+    description: Gemini-powered résumé chatbot
+  - name: External
+    description: Cached external API data (GitHub)
