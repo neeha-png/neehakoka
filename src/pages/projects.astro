@@ -1,32 +1,40 @@
 ---
-// projects.astro - Portfolio Project Case Studies
+// projects.astro — Project case study showcase page.
+// Each project is an expandable card with Problem → Approach → Outcome structure.
+// Accordion behaviour is handled by inline JS that replaces cloned nodes on re-mount
+// to avoid duplicate event listeners when Astro View Transitions are active.
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Projects | Neeha Koka">
+<Layout title="Projects | Neeha Koka" description="Full-stack engineering projects: Flask Lost-and-Found Portal and Django Academic Result Management System.">
 	<div style="max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; padding: 24px 0;">
-		
+
+		<!-- Page header -->
 		<section style="border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 16px;">
 			<h1 style="font-size: 36px; font-weight: 800;">Technical Project Showcases</h1>
 			<p style="font-size: 18px; opacity: 0.8; margin-top: 8px;">
 				Practical engineering applications demonstrating full-stack development, workflows automation, and secure user boundaries.
 			</p>
 		</section>
-		
-		<!-- Project 1 (interactive) -->
+
+		<!-- Project 1: Flask Lost-and-Found Portal -->
 		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+			<!-- Clickable header row — tap to expand the full case study -->
 			<button type="button" class="interactive-card" data-more-target="project-flask" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
 				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
 					<div>
+						<!-- Tech badge and project title -->
 						<span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #3B82F6; font-weight: 700;">Flask & MySQL Stack</span>
 						<h2 style="font-size: 24px; font-weight: 700; margin-top: 2px;">Lost and Found in Campus Portal</h2>
 					</div>
 					<span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">Tap for details ↓</span>
 				</div>
+				<!-- One-line summary visible without expanding -->
 				<p style="line-height: 1.6; opacity: 0.85; margin: 0;">
 					<strong>Quick summary:</strong> Audited multi-role item tracking with strict verification workflows and automated updates.
 				</p>
 			</button>
+			<!-- Expanded case study: The Challenge → Approach → Outcome -->
 			<div id="project-flask" class="interactive-more" hidden>
 				<p style="line-height: 1.6; opacity: 0.85; margin-top: 10px;">
 					<strong>The Challenge:</strong> Campus recovery systems often lack structural integrity, causing transparency issues when tracking down lost properties for hundreds of internal users.
@@ -40,8 +48,9 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</article>
 
-		<!-- Project 2 (interactive) -->
+		<!-- Project 2: Django Academic Result Management System -->
 		<article style="background-color: rgba(148, 163, 184, 0.03); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+			<!-- Clickable header row -->
 			<button type="button" class="interactive-card" data-more-target="project-django" style="all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 100%;">
 				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
 					<div>
@@ -54,6 +63,7 @@ import Layout from '../layouts/Layout.astro';
 					<strong>Quick summary:</strong> Secure MVC dashboards for Courses + Results with role-based access boundaries.
 				</p>
 			</button>
+			<!-- Expanded case study: The Challenge → Approach → Outcome -->
 			<div id="project-django" class="interactive-more" hidden>
 				<p style="line-height: 1.6; opacity: 0.85; margin-top: 10px;">
 					<strong>The Challenge:</strong> Manual institutional record-keeping introduces structural entry vulnerabilities and lack of controlled entry protocols for sensitive score summaries.
@@ -69,18 +79,19 @@ import Layout from '../layouts/Layout.astro';
 
 	<script is:inline>
     function setupAccordions() {
+        // Clone and replace each button to remove any stale event listeners
+        // before re-binding — prevents duplicate handlers on View Transition re-mounts
         for (const btn of document.querySelectorAll('.interactive-card')) {
-            // Remove any old listeners so they don't stack up up abnormally
             btn.replaceWith(btn.cloneNode(true));
         }
 
-        // Re-bind the click tracking behavior
+        // Bind fresh click listeners to all accordion toggle buttons
         for (const btn of document.querySelectorAll('.interactive-card')) {
             btn.addEventListener('click', () => {
                 const targetId = btn.getAttribute('data-more-target');
                 const panel = document.getElementById(targetId);
                 if (!panel) return;
-                
+                // Toggle the hidden attribute to expand or collapse the detail panel
                 if (panel.hasAttribute('hidden')) {
                     panel.removeAttribute('hidden');
                 } else {
@@ -90,11 +101,11 @@ import Layout from '../layouts/Layout.astro';
         }
     }
 
-    // Run immediately when script loads
+    // Run on initial page load
     setupAccordions();
-    
-    // Run again if you are using Astro View Transitions
+
+    // Re-run after Astro View Transitions swap the page content
     document.addEventListener('astro:page-load', setupAccordions);
-</script>
+	</script>
 	</div>
 </Layout>

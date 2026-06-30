@@ -10,10 +10,13 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
+// The external API we are integrating with
 const EXTERNAL_API_URL = 'https://api.github.com/users/cloudflare/repos';
 // Cache namespace — bump the version suffix to invalidate all edge entries
 const CACHE_NAME = 'integrauth:external-data:v1';
 
+// Static fallback dataset returned when the external API is unavailable and no cache exists.
+// Marked with source: 'mock' so the UI can show a degraded-mode indicator if needed.
 const EXTERNAL_DATA_MOCK = {
   status: 'fallback',
   fetchedAt: new Date().toISOString(),
@@ -25,12 +28,15 @@ const EXTERNAL_DATA_MOCK = {
   ],
 };
 
+// Helper that creates a JSON Response with the correct content-type header
 function jsonResponse(body: unknown, init: ResponseInit = {}) {
   const headers = new Headers(init.headers);
   headers.set('content-type', 'application/json; charset=utf-8');
   return new Response(JSON.stringify(body), { ...init, headers });
 }
 
+// Wraps fetch with an AbortController timeout.
+// Aborts the request if it hasn't resolved within timeoutMs milliseconds.
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
   const controller = new AbortController();
   const timeout = setTimeout(
@@ -40,40 +46,51 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
   try {
     return await fetch(url, { ...init, signal: controller.signal });
   } finally {
+    // Always clear the timeout to avoid memory leaks regardless of fetch outcome
     clearTimeout(timeout);
   }
 }
 
+// Core data-fetching logic with a three-layer fallback strategy:
+//   1. Serve from Cloudflare edge cache (fastest path — no external call)
+//   2. Fetch fresh from GitHub API and populate the cache
+//   3. Return stale cache or the mock dataset if GitHub is down or times out
 async function getExternalDataWithCache() {
-  const cache = caches.default;
+  // caches.default is a Cloudflare Workers extension; not in the standard DOM CacheStorage type
+  const cache = (caches as any).default as Cache;
   const request = new Request(EXTERNAL_API_URL, { method: 'GET' });
 
-  // 1) Fast path: serve from cache
+  // Fast path: return the cached response immediately if it exists
   try {
     const cached = await cache.match(request, { ignoreMethod: true });
     if (cached) return new Response(cached.body, cached);
   } catch {
-    // Cache errors should never break the request
+    // Cache read errors should never block the request — fall through to fresh fetch
   }
 
-  // 2) Cache miss: fetch from external
+  // Cache miss — attempt to fetch fresh data from the GitHub API
   const externalKey = (env as any).EXTERNAL_API_KEY;
   const headers = new Headers({ accept: 'application/json' });
+
+  // Attach an auth token if configured — raises the GitHub API rate limit from 60 to 5000/hr
   if (externalKey) headers.set('authorization', `Bearer ${externalKey}`);
 
   try {
+    // 2.5 second timeout prevents slow upstreams from hanging the Worker
     const upstreamResp = await fetchWithTimeout(
       EXTERNAL_API_URL,
       { method: 'GET', headers },
       2500
     );
 
+    // Treat 5xx responses as failures and trigger the fallback path
     if (!upstreamResp.ok || upstreamResp.status >= 500) {
       throw new Error(`Upstream failed with status ${upstreamResp.status}`);
     }
 
     const json = await upstreamResp.json() as any[];
 
+    // Normalise the GitHub API response shape into a simpler internal format
     const normalized = Array.isArray(json)
       ? json.map((r, idx) => ({
           id: r.id ?? idx + 1,
@@ -92,30 +109,34 @@ async function getExternalDataWithCache() {
 
     const responseToCache = jsonResponse(payload, { status: 200 });
 
+    // Store the fresh response in the edge cache for subsequent requests
     try {
       await cache.put(request, responseToCache.clone());
     } catch {
-      // If cache put fails, still return successful payload
+      // Cache write failures are non-fatal — still return the live data
     }
 
     return responseToCache;
   } catch {
-    // 3) Fallback: return stale cache or mock
+    // Fallback layer: try to serve stale cache before resorting to mock data
     try {
       const cached = await cache.match(request, { ignoreMethod: true });
       if (cached) return new Response(cached.body, cached);
     } catch {
-      // ignore
+      // ignore cache read errors in the fallback path
     }
 
+    // Last resort: return the static mock dataset so the UI always has something to render
     return jsonResponse(EXTERNAL_DATA_MOCK, { status: 200 });
   }
 }
 
+// GET /api/external-data — returns cached or live GitHub repo data
 export const GET: APIRoute = async () => {
   return await getExternalDataWithCache();
 };
 
+// Rejects any non-GET method with a 400 response
 export const ALL: APIRoute = async () => {
   return new Response(JSON.stringify({ error: 'Method not allowed', status: 400 }), {
     status: 400,

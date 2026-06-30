@@ -1,11 +1,13 @@
 ---
-// src/pages/admin.astro
-import { env } from "cloudflare:workers"; // <-- New Astro v6 way
+// admin.astro — Protected admin panel showing contact form submissions from D1.
+// Authentication uses the admin_session cookie set by /api/login.
+// Session tokens are verified against the admin_sessions D1 table (2-hour TTL).
+import { env } from "cloudflare:workers";
 
-const db = env.portfolio_db; // <-- No longer need Astro.locals.runtime
+const db = env.portfolio_db;
 
-// 1. Authentication Check Layer
 interface Submission {
+  id: string;
   name: string;
   email: string;
   created_at: string;
@@ -16,12 +18,13 @@ interface Submission {
 let isAuthenticated = false;
 let submissions: Submission[] = [];
 
+// Read and verify the admin session cookie sent with the request
 const cookieHeader = Astro.request.headers.get("cookie") || "";
 const match = cookieHeader.match(/admin_session=([^;]+)/);
 const token = match ? match[1] : null;
 
 if (token) {
-  // Verify token exists and hasn't expired yet
+  // Verify the token exists in D1 and has not expired
   const session = await db.prepare(
     "SELECT * FROM admin_sessions WHERE token = ? AND expires_at > datetime('now')"
   )
@@ -30,8 +33,8 @@ if (token) {
 
   if (session) {
     isAuthenticated = true;
-    
-    // Fetch Form Data if Authenticated
+
+    // Fetch all non-deleted submissions newest first
     const result = await db.prepare(
       "SELECT * FROM submissions WHERE status != 'deleted' ORDER BY created_at DESC"
     )
@@ -42,6 +45,7 @@ if (token) {
       : [];
 
     submissions = rows.map((row) => ({
+      id: String(row.id ?? ""),
       name: String(row.name ?? ""),
       email: String(row.email ?? ""),
       created_at: String(row.created_at ?? ""),
@@ -50,60 +54,106 @@ if (token) {
     }));
   }
 }
+
+// Pre-compute counts for the summary bar
+const pendingCount = submissions.filter(s => s.status === 'pending').length;
+const readCount = submissions.filter(s => s.status === 'read').length;
 ---
 
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Portfolio Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Neeha Koka Portfolio</title>
   <style>
-    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
-    max-width { max-width: 800px; margin: 0 auto; }
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; margin: 0; }
+    .max-width { max-width: 860px; margin: 0 auto; }
     .card { background: #1e293b; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #334155; }
     .form-group { margin-bottom: 1rem; }
-    label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-    input[type="text"], input[type="password"] { width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 4px; box-sizing: border-box; }
-    button { background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    button:hover { background: #1d4ed8; }
-    .meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; }
-    .badge { background: #334155; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: #94a3b8; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 0.6rem 0.8rem; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
+    input:focus { outline: 2px solid #3B82F6; border-color: transparent; }
+    .btn { background: #2563eb; color: white; padding: 0.55rem 1.1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+    .meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .badge { padding: 0.2rem 0.55rem; border-radius: 4px; font-size: 0.73rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge-pending { background: rgba(234,179,8,0.2); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
+    .badge-read    { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-archived { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+    .stats-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.75rem 1.25rem; font-size: 0.9rem; }
+    .stat strong { display: block; font-size: 1.4rem; color: #f1f5f9; }
+    .back-link { font-size: 0.85rem; color: #94a3b8; text-decoration: none; margin-bottom: 1.5rem; display: inline-block; }
+    .back-link:hover { color: #3B82F6; }
   </style>
 </head>
 <body>
   <div class="max-width">
     {!isAuthenticated ? (
-      <div class="card" style="max-width: 400px; margin: 10% auto;">
-        <h2>Admin Authentication</h2>
+      <!-- Login form — shown when no valid session cookie is present -->
+      <div class="card" style="max-width: 400px; margin: 8% auto;">
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.3rem;">Admin Sign In</h2>
         <form id="loginForm">
           <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" required />
+            <input type="text" id="username" autocomplete="username" required />
           </div>
           <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" required />
+            <input type="password" id="password" autocomplete="current-password" required />
           </div>
-          <button type="submit">Sign In</button>
+          <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;">Sign In</button>
         </form>
-        <p id="loginError" style="color: #ef4444; margin-top: 1rem; display: none;"></p>
+        <p id="loginError" style="color: #f87171; margin-top: 1rem; display: none; font-size: 0.9rem;"></p>
+        <a href="/" class="back-link" style="margin-top: 1.5rem;">← Back to site</a>
       </div>
     ) : (
+      <!-- Dashboard — shown when session is valid -->
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-          <h1>Inbox Submissions ({submissions.length})</h1>
-          <button id="logoutBtn" style="background: #dc2626;">Log Out</button>
+        <!-- Header row: title, back link, logout -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <a href="/" class="back-link" style="margin-bottom: 4px;">← Back to site</a>
+            <h1 style="font-size: 1.5rem; margin: 0;">Contact Submissions</h1>
+          </div>
+          <button id="logoutBtn" class="btn btn-danger">Log Out</button>
+        </div>
+
+        <!-- Summary counts -->
+        <div class="stats-bar">
+          <div class="stat"><strong>{submissions.length}</strong>Total</div>
+          <div class="stat"><strong style="color:#fbbf24">{pendingCount}</strong>Pending</div>
+          <div class="stat"><strong style="color:#4ade80">{readCount}</strong>Read</div>
         </div>
 
         {submissions.length === 0 ? (
-          <p>No contact messages received yet.</p>
+          <div class="card" style="text-align: center; color: #64748b; padding: 3rem;">
+            No contact messages received yet.
+          </div>
         ) : (
           submissions.map((msg) => (
-            <div class="card">
+            <div class="card" data-id={msg.id}>
+              <!-- Sender metadata row with status badge and mark-as-read button -->
               <div class="meta">
-                <strong>{msg.name}</strong> &lt;{msg.email}&gt; • {new Date(msg.created_at).toLocaleString()}
-                <span class="badge" style="float: right;">{msg.status}</span>
+                <span>
+                  <strong style="color:#f1f5f9">{msg.name}</strong>
+                  {' '}
+                  <a href={`mailto:${msg.email}`} style="color: #3B82F6; text-decoration: none;">&lt;{msg.email}&gt;</a>
+                  {' • '}
+                  {new Date(msg.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
+                </span>
+                <span style="display:flex; gap: 8px; align-items: center;">
+                  <span class={`badge badge-${msg.status}`}>{msg.status}</span>
+                  {msg.status === 'pending' && (
+                    <button class="btn btn-sm mark-read-btn" data-id={msg.id}>Mark read</button>
+                  )}
+                </span>
               </div>
-              <p style="white-space: pre-wrap; margin: 1rem 0;">{msg.message}</p>
+              <!-- Message body -->
+              <p style="white-space: pre-wrap; line-height: 1.6; color: #cbd5e1; margin: 0;">{msg.message}</p>
             </div>
           ))
         )}
@@ -112,7 +162,8 @@ if (token) {
   </div>
 
   <script>
-    // Handle Interactive Frontend Operations (Login / Logout)
+    // Login form — POSTs credentials to /api/login; reloads on success so the
+    // server reads the new session cookie and renders the dashboard
     const loginForm = document.getElementById("loginForm");
     if (loginForm) {
       loginForm.addEventListener("submit", async (e) => {
@@ -128,7 +179,7 @@ if (token) {
         });
 
         if (res.ok) {
-          window.location.reload(); // Reload handles the cookie reading server side instantly
+          window.location.reload();
         } else {
           const data = await res.json().catch(() => null);
           const errorMessage = data && typeof data === "object" && "error" in data && typeof (data as any).error === "string"
@@ -143,20 +194,45 @@ if (token) {
       });
     }
 
+    // Logout — invalidates session in D1 via /api/logout, then reloads to show login form
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", async () => {
         try {
-          // Server-side logout invalidates the session in D1 and clears the cookie.
           await fetch("/api/logout", { method: "POST" });
-        } catch (e) {
-          // Even if the request fails, attempt to clear cookie locally.
+        } catch {
           document.cookie = "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
         } finally {
           window.location.reload();
         }
       });
     }
+
+    // Mark-as-read buttons — update submission status in D1 and swap the badge in-place
+    // without a full page reload for a smoother admin UX
+    document.querySelectorAll(".mark-read-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = (btn as HTMLElement).dataset.id;
+        if (!id) return;
+
+        const res = await fetch("/api/submissions/status", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, status: "read" }),
+        });
+
+        if (res.ok) {
+          // Update badge text + class in-place without a reload
+          const card = document.querySelector(`[data-id="${id}"]`);
+          const badge = card?.querySelector(".badge");
+          if (badge) {
+            badge.textContent = "read";
+            badge.className = "badge badge-read";
+          }
+          (btn as HTMLElement).remove();
+        }
+      });
+    });
   </script>
 </body>
 </html>

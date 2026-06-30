@@ -4,6 +4,8 @@
 // could query the Astro content collection or a D1 table at runtime.
 import type { APIRoute } from 'astro';
 
+// Static post data — each entry represents a published blog post stub.
+// In a larger project this would be fetched from D1 or a CMS.
 const POSTS = [
   {
     slug: "welcome-to-integrauth",
@@ -25,6 +27,7 @@ const POSTS = [
   },
 ];
 
+// Returns the full list of posts as a JSON array with a 200 status
 export const GET: APIRoute = async () => {
   return new Response(JSON.stringify(POSTS), {
     status: 200,
@@ -32,6 +35,7 @@ export const GET: APIRoute = async () => {
   });
 };
 
+// Catches any non-GET methods (POST, PUT, DELETE, etc.) and returns 400
 export const ALL: APIRoute = async () => {
   return new Response(JSON.stringify({ error: 'Method not allowed', status: 400 }), {
     status: 400,
