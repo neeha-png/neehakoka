@@ -76,7 +76,7 @@ All tests performed against the production deployment at **https://neehakoka.nee
 | Empty name blocked | PASS | PASS | PASS | Server returns 400 |
 | Invalid email blocked | PASS | PASS | PASS | |
 | Message < 10 chars blocked | PASS | PASS | PASS | |
-| Script tag in message sanitized | PASS | PASS | PASS | `<` and `>` escaped in DB |
+| Script tag in message sanitized | ⚠️ | ⚠️ | ⚠️ | **Correction (Extension 5):** re-verified while building this extension — `src/pages/api/contact.ts` on this branch does not actually escape or sanitize `name`/`email`/`message` before the D1 insert or the Resend email body. The original PASS here was inaccurate. Sanitization is security-hardening work tracked separately, not in this testing extension's scope. |
 
 ### 404 Page
 
@@ -125,7 +125,7 @@ All tests performed against the production deployment at **https://neehakoka.nee
 |---|---|---|
 | System preference dark → page loads dark | PASS | `prefers-color-scheme` detected in inline script |
 | Manual toggle switches theme | PASS | `dark` class toggled on `<html>` |
-| Theme persists across page reload | PASS | `localStorage` read on next load |
+| Theme persists across page reload | PASS | **Correction (Extension 5):** persistence is actually a `theme` cookie (`Path=/; Max-Age=31536000; SameSite=Lax`), read server-side in `Layout.astro` before paint — not `localStorage` as originally logged here. Now covered by an automated test: `e2e/dark-mode.spec.ts`. |
 | Dark header background applies | PASS | CSS variable `--header-bg` switches |
 
 ---
@@ -136,3 +136,42 @@ All tests performed against the production deployment at **https://neehakoka.nee
 |---|---|
 | 4th contact form submit within 1 hour blocked | PASS — 429 returned |
 | 7th chat message within 1 hour blocked | PASS — error shown in widget |
+
+---
+
+## Automated Test Suite (Extension 5)
+
+Everything above this section is the pre-existing manual log. This section documents the automated suite added on top of it — Vitest for unit tests, Playwright for E2E.
+
+### What's covered
+
+| Layer | File | Covers |
+|---|---|---|
+| Unit (Vitest) | `src/lib/messageCounter.test.ts` | `getCounterState()` — text formatting, default max, the 90%-of-max near-limit threshold (below, at, and above) |
+| E2E (Playwright) | `e2e/contact-form.spec.ts` | Live character counter while typing; full fill → submit → success-state flow (banner text, form reset, counter reset) |
+| E2E (Playwright) | `e2e/dark-mode.spec.ts` | Toggling theme updates `<html class="dark">`; the change survives a full page reload (cookie round-trip through the server) |
+
+### What's not covered (and why)
+
+See `DECISIONS.md` for the full rationale. Briefly: real Resend email delivery, real D1 writes from the contact form, the AI chatbot (already covered separately by `EVALS.md`/`scripts/run-evals.ts`), non-Chromium browsers, and load/performance testing are all out of scope for this suite.
+
+### Running locally
+
+```bash
+# Unit tests only (fast, no browser, no server)
+npm run test:unit
+
+# E2E tests only — automatically builds and starts `wrangler dev` on :8787 first
+npm run test:e2e
+
+# Everything
+npm test
+```
+
+Playwright's `webServer` config (`playwright.config.ts`) runs `npm run preview` (real `wrangler dev`, not `astro dev`) and reuses an already-running dev server locally (`reuseExistingServer: !process.env.CI`) — so if you already have `npm run preview` running in another terminal, `npm run test:e2e` attaches to it instead of rebuilding.
+
+To debug a failing E2E test interactively: `npx playwright test --ui` or `npx playwright test --debug`.
+
+### Running in CI
+
+`.github/workflows/ci.yml` runs `npm run test:unit`, installs the Chromium browser (`npx playwright install --with-deps chromium`), then `npm run test:e2e` — on every pull request targeting `main`. A failure in either layer fails the required status check and blocks the merge button; the Playwright HTML report is uploaded as a workflow artifact (`playwright-report/`, 7-day retention) for debugging a CI-only failure.
