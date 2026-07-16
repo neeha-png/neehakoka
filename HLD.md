@@ -121,3 +121,71 @@ Browser → Worker → Cache API hit? → return cached JSON (fast path)
 - **Global edge**: Requests are served from the nearest Cloudflare PoP (~300 worldwide).
 - **D1 read replicas**: D1 automatically replicates reads to regional edge nodes (write goes to primary).
 - **Cache API**: GitHub stats are cached at the edge for 10 minutes, preventing upstream rate-limit hits from repeated visitors.
+
+---
+
+## Testing & CI Infrastructure (Extension 5)
+
+Before this extension, the repo had no test runner at all — `npm test --if-present` was a silent no-op. This adds a Vitest unit layer, a Playwright E2E layer, and a CI gate that blocks merges to `main` on any failure.
+
+| Component | Responsibility | Depends on |
+|---|---|---|
+| `src/lib/*.test.ts` (Vitest) | Pure-function unit tests (e.g. the contact-form message counter) | Nothing — no network, no bindings, no browser |
+| `e2e/*.spec.ts` (Playwright) | Browser-level checks: contact form fill/submit/success, dark-mode persistence across reload | A running Worker (`npm run preview` → real `wrangler dev`, port 8787) |
+| `.github/workflows/ci.yml` | Runs both layers on every PR to `main`; uploads the Playwright report as an artifact on failure | GitHub Actions, branch protection rule on `main` |
+
+No new external services or data stores are introduced. E2E tests run against the same D1/KV/AI bindings already defined in `wrangler.jsonc` — Playwright targets the real `wrangler dev` process rather than `astro dev`'s proxied bindings, so a broken binding wire-up would actually fail the suite instead of being masked.
+
+```
+PR opened
+   │
+   ▼
+GitHub Actions (ci.yml)
+   │
+   ├── npm ci
+   ├── vitest run ──────────────────► unit test results
+   ├── npx playwright install
+   └── npm run preview (build + wrangler dev, port 8787)
+           └── playwright test ─────► e2e test results
+   │
+   ▼
+All green? ── no ──► merge blocked, Playwright report uploaded for debugging
+   │
+  yes
+   │
+   ▼
+makhil006 approval required ──► merge to main
+```
+
+### CI Sequence
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub PR
+    participant CI as GitHub Actions
+    participant Vitest as Vitest (unit)
+    participant PW as Playwright (E2E)
+    participant Wrangler as wrangler dev
+    participant Reviewer as makhil006
+
+    Dev->>GH: Open PR (feat/ext-5-automated-testing → main)
+    GH->>CI: Trigger workflow (pull_request)
+    CI->>CI: npm ci
+    CI->>Vitest: npm run test:unit
+    Vitest-->>CI: Pass/Fail
+    CI->>PW: npx playwright install --with-deps chromium
+    CI->>Wrangler: npm run preview (build + start, backgrounded by Playwright)
+    CI->>PW: npm run test:e2e against localhost:8787
+    PW-->>CI: Pass/Fail
+
+    alt Any test fails
+        CI-->>GH: Status = failure
+        GH-->>Dev: Merge blocked (required check failed)
+    else All tests pass
+        CI-->>GH: Status = success
+        GH->>Reviewer: Request review
+        Reviewer-->>GH: Approve
+        GH-->>Dev: Merge to main enabled
+    end
+```

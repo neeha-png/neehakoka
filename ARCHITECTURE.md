@@ -29,7 +29,9 @@ personal-portfolio/
 │   │   └── cv.ts                 # Hardcoded CV text; grounds the Gemini system prompt
 │   ├── lib/
 │   │   ├── rateLimit.ts          # IP-based D1 rate limiter (route + IP + hour window)
-│   │   └── profileContext.ts     # (helper) profile metadata for future use
+│   │   ├── profileContext.ts     # (helper) profile metadata for future use
+│   │   ├── messageCounter.ts     # Pure fn: contact-form char counter state (TDD, Extension 5)
+│   │   └── messageCounter.test.ts # Vitest unit tests for messageCounter.ts
 │   ├── pages/
 │   │   ├── index.astro           # Single-page portfolio (hero, about, projects, blog, contact)
 │   │   ├── about.astro           # Dedicated about/resume page
@@ -59,17 +61,22 @@ personal-portfolio/
 │   ├── 0001_init.sql             # submissions table (UUID PK, name, email, message, status)
 │   ├── 0002_rate_limit.sql       # rate_limits table (route+IP+window composite PK)
 │   └── 0003_fix_submissions.sql  # Re-creates submissions with TEXT id for UUID compatibility
+├── e2e/
+│   ├── contact-form.spec.ts      # Playwright: char counter, fill/submit/success state
+│   └── dark-mode.spec.ts         # Playwright: theme toggle persists across reload
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                # Lint + type-check on pull requests
+│       ├── ci.yml                # Unit (Vitest) + E2E (Playwright) tests on pull requests
 │       └── deploy.yml            # Wrangler deploy on push to main
 ├── openapi.yaml                  # OpenAPI 3.1 spec for all /api/* routes
 ├── HLD.md                        # High-level component diagram
 ├── ARCHITECTURE.md               # This file — code tour and request lifecycle
 ├── DECISIONS.md                  # Architecture decisions and trade-offs
-├── TESTING.md                    # Manual test log (browsers, viewports, accessibility)
+├── TESTING.md                    # Manual test log + automated suite coverage/run instructions
 ├── EVALS.md                      # AI chatbot eval suite (20 deterministic test cases)
 ├── astro.config.mjs              # Astro config (site URL, cloudflare adapter)
+├── playwright.config.ts          # E2E config — targets real `wrangler dev` on :8787
+├── vitest.config.ts              # Unit test config — scans src/**/*.test.ts
 └── wrangler.jsonc                # Cloudflare bindings (D1, KV, ASSETS, vars)
 ```
 
@@ -114,16 +121,31 @@ POST /api/contact
 Body: { name: string, email: string, message: string }
 ```
 1. Rate limit: 3 per IP per hour
-2. Validates name (≥2 chars), email (regex), message (≥10 chars, ≤2000 chars)
+2. Validates name (≥2 chars), email (regex), message (≥10 chars)
 3. **Saves to D1 first** — so no message is lost even if the email step fails
 4. Calls Resend API with `from: portfolio@resend.dev`, `to: TO_EMAIL` env var
 5. Returns 200 on full success, 502 if Resend fails but D1 save succeeded
+
+> The 2000-character cap visitors see is currently **client-side only** — the `maxlength` attribute and the live counter in `contact.astro` (see `src/lib/messageCounter.ts` below). The server doesn't reject long messages; adding that check is out of this extension's scope (see DECISIONS.md).
 
 ### `src/pages/api/external-data.ts`
 Three-layer resilience:
 1. **Cache API** — `caches.default.match(cacheKey)` returns cached response if hit (TTL 10 min)
 2. **Live fetch** — `fetchWithTimeout(url, token, 5000)` calls `api.github.com/users/neeha-png`
 3. **Mock fallback** — static object returned if both upstream layers fail
+
+### `src/lib/messageCounter.ts` (Extension 5)
+Pure function, no DOM/network dependencies — built test-first:
+```
+getCounterState(length: number, max = MAX_MESSAGE_LENGTH)
+  → { text: "42 / 2000", isNearLimit: boolean }
+```
+`isNearLimit` trips at 90% of `max`. `contact.astro`'s client script calls this on every `input` event on `#message` and writes `text`/color into the `#message-counter` span. Covered by `src/lib/messageCounter.test.ts` (Vitest) and indirectly by `e2e/contact-form.spec.ts` (Playwright).
+
+### `playwright.config.ts` / `e2e/*.spec.ts` (Extension 5)
+`webServer` runs `npm run preview` (full `astro build` + real `wrangler dev`, not `astro dev`) so E2E exercises the actual Worker runtime and its D1/KV/AI bindings rather than `astro dev`'s proxied versions. Chromium only, in the interest of CI speed (see DECISIONS.md).
+- `contact-form.spec.ts`: asserts the live counter, then stubs `POST /api/contact` via `page.route()` to assert the frontend's success-state handling (banner text, form reset, counter reset) without calling the real Resend API or writing to D1.
+- `dark-mode.spec.ts`: seeds a known `theme=light` cookie via `context.addCookies()` (so the test doesn't depend on the browser's system color-scheme), clicks `#themeToggle`, reloads, and asserts the `dark` class on `<html>` survives — proving the cookie round-trip through `Layout.astro`'s server-side read actually works, not just the client-side toggle.
 
 ### `src/components/ChatWidget.astro`
 Floating action button (FAB) in the bottom-right corner. Renders a chat panel with:
@@ -177,6 +199,35 @@ Floating action button (FAB) in the bottom-right corner. Renders a chat panel wi
    → Re-enables submit button
 ```
 
+### Example: Pull request triggers CI (Extension 5)
+
+```
+1. Developer pushes feat/ext-5-automated-testing, opens a PR into main
+
+2. GitHub Actions (ci.yml) triggers on pull_request
+   → npm ci
+
+3. Unit layer
+   → npm run test:unit (Vitest)
+   → src/lib/messageCounter.test.ts runs against messageCounter.ts directly
+   → Fails fast, no browser/network involved
+
+4. E2E layer
+   → npx playwright install --with-deps chromium
+   → npm run test:e2e (Playwright)
+       → webServer runs `npm run preview` (astro build + wrangler dev, :8787)
+       → contact-form.spec.ts + dark-mode.spec.ts run against the real Worker
+
+5. Any failure
+   → Job exits non-zero → PR status check = failure
+   → Playwright HTML report uploaded as a workflow artifact for debugging
+   → GitHub blocks the merge button (required status check)
+
+6. All green
+   → Status check = success
+   → makhil006's approval still required (required reviewer) before merge unlocks
+```
+
 ---
 
 ## Database Schema
@@ -210,8 +261,11 @@ CREATE TABLE rate_limits (
 Pull Request opened
   └─► ci.yml
         ├── npm ci
-        ├── astro check (TypeScript types)
-        └── (lint if configured)
+        ├── npm run lint --if-present   (no lint script configured yet — no-op)
+        ├── npm run test:unit           (Vitest)
+        ├── npx playwright install --with-deps chromium
+        ├── npm run test:e2e            (Playwright, against real wrangler dev)
+        └── upload playwright-report/ artifact on failure
 
 Push to main
   └─► deploy.yml
@@ -220,7 +274,7 @@ Push to main
         └── wrangler deploy (reads CLOUDFLARE_API_TOKEN secret)
 ```
 
-Secrets managed via GitHub repository secrets → never in source code.
+Secrets managed via GitHub repository secrets → never in source code. Branch protection on `main` requires the `ci.yml` check to pass and an approving review from `makhil006` before merging (see HLD.md's Testing & CI Infrastructure section for the full sequence diagram).
 
 ---
 
