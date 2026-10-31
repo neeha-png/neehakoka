@@ -1,7 +1,7 @@
-// posts.ts — Public JSON API returning the list of all blog posts.
-// GET /api/posts → 200 JSON array of post stubs
-// All other HTTP methods → 400 Method Not Allowed
-
+// posts.ts — GET /api/posts
+// Returns a static list of blog post summaries as JSON.
+// Posts are defined inline here for zero-latency reads; a future iteration
+// could query the Astro content collection or a D1 table at runtime.
 import type { APIRoute } from 'astro';
 
 // Static post data — each entry represents a published blog post stub.
