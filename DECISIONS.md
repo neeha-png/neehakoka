@@ -51,3 +51,18 @@ If this project were continued beyond the assignment:
 5. **Streamed chat responses** — switch `/api/chat` from `Response.json({ reply })` to a `ReadableStream` / Server-Sent Events response so the chatbot types out answers incrementally instead of waiting for the full generation.
 6. **Full-text search on blog** — use D1 FTS5 extension to add a search box across blog post content.
 7. **Automated Lighthouse CI** — add a `lighthouse-ci` step to the GitHub Actions workflow to catch performance or accessibility regressions before merge.
+
+---
+
+## Extension 5: What We Chose Not to Test
+
+Automated testing was added (Vitest unit + Playwright E2E, gated in CI). The following were deliberately left out of the automated suite, with the reasoning:
+
+- **Real Resend email delivery.** `contact-form.spec.ts` stubs `POST /api/contact` via `page.route()` instead of letting the form hit the live handler. Letting E2E runs call the real Resend API would send a real email on every CI run and every local run — noisy, costs API quota, and isn't something a test should have side effects on. The frontend's request/response handling is what's under test here; real delivery is a backend integration concern.
+- **Real D1 writes from the contact form.** Same stubbing decision as above — the real handler inserts into `submissions` before emailing. Stubbing the API response means no test-generated rows ever land in D1, local or otherwise.
+- **AI chatbot behavior.** Already covered by a separate, purpose-built suite (`scripts/run-evals.ts`, documented in `EVALS.md`, 20 deterministic test cases). Duplicating that here would be redundant.
+- **Non-Chromium browsers.** `playwright.config.ts` runs Chromium only. Firefox/WebKit projects are a one-line addition later if cross-browser regressions actually show up in the wild; running three engines on every PR triples CI time for a personal portfolio site where the visitor base is overwhelmingly Chromium-based.
+- **Load / performance testing.** No k6/Artillery-style load test was added. This site's traffic profile doesn't warrant it yet, and Cloudflare Workers' scaling characteristics make it low-value relative to the effort.
+- **Server-side enforcement of the 2000-character message cap.** The new character counter (`src/lib/messageCounter.ts`) is a client-side UX affordance only — `api/contact.ts` still has no upper bound on message length. Adding one is a small, legitimate follow-up, but it's a backend validation change, not a testing-infrastructure change, so it was left out of this extension's scope. Tracked as a follow-up.
+- **Input sanitization / XSS hardening on the contact form.** While verifying `contact.astro`/`api/contact.ts` for this extension, we confirmed this branch does not escape `name`/`email`/`message` before the D1 insert or the Resend email body (the manual test log in `TESTING.md` previously claimed otherwise — corrected). That's security-hardening work, not testing-infrastructure work, so it's intentionally not fixed here to keep this PR's diff focused and reviewable.
+- **Branch protection / required-reviewer enforcement.** Configured via the GitHub API (`gh api`), not a testable code path — there's no meaningful automated test for "does GitHub's UI block this button," so it's verified manually by observing the PR checks tab.

@@ -50,10 +50,12 @@ import Layout from '../layouts/Layout.astro';
           name="message"
           required
           minlength="10"
+          maxlength="2000"
           rows="5"
           placeholder="How can I help you?"
           style="width: 100%; background-color: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; padding: 12px 16px; color: #ffffff; font-size: 14px; outline: none; resize: vertical; min-height: 120px; box-sizing: border-box;"
         ></textarea>
+        <span id="message-counter" style="font-size: 12px; opacity: 0.6; align-self: flex-end;">0 / 2000</span>
       </div>
 
       <!-- Submit button -->
@@ -76,9 +78,25 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
+  import { getCounterState } from '../lib/messageCounter';
+
   const form = document.getElementById('contact-form') as HTMLFormElement;
   const statusMessage = document.getElementById('form-status');
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const messageInput = document.getElementById('message') as HTMLTextAreaElement;
+  const counter = document.getElementById('message-counter');
+
+  function updateCounter() {
+    if (!messageInput || !counter) return;
+    const { text, isNearLimit } = getCounterState(messageInput.value.length);
+    counter.textContent = text;
+    counter.style.color = isNearLimit ? '#f87171' : '';
+  }
+
+  if (messageInput && counter) {
+    updateCounter();
+    messageInput.addEventListener('input', updateCounter);
+  }
 
   if (form && statusMessage && submitBtn) {
     form.addEventListener('submit', async (e) => {
@@ -118,6 +136,7 @@ import Layout from '../layouts/Layout.astro';
           statusMessage.style.color = '#4ade80';
           statusMessage.textContent = result.message || 'Success! Your message was sent.';
           form.reset();
+          updateCounter();
         } else {
           // Server-side validation failure: show the API's error message in red
           statusMessage.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
